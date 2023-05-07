@@ -19,6 +19,16 @@
     mode: "0644"
   become: yes
 
+- name: Enable service fail2ban.service, and not touch the state
+  ansible.builtin.service:
+    name: fail2ban.service
+    enabled: yes
+
+- name: Start service fail2ban.service, if not started
+  ansible.builtin.service:
+    name: fail2ban.service
+    state: started
+
 #################################################
 
 # 2. Restart server #
