@@ -1,0 +1,30 @@
+## Fail2ban role tasks #
+
+---
+
+# 1. Install fail2ban and config #
+
+- name: Install Fail2Ban
+  apt:
+    name: fail2ban
+  become: yes
+
+- name: Configure Fail2Ban jail for SSH
+  copy:
+    src: jail.local
+    dest: /etc/fail2ban/jail.local
+    remote_src: no
+    owner: root
+    group: root
+    mode: "0644"
+  become: yes
+
+#################################################
+
+# 2. Restart server #
+
+- name: Restart server
+  reboot:
+  become: yes
+
+#################################################

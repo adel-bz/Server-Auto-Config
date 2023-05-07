@@ -1,0 +1,42 @@
+## SSH config role tasks ## 
+
+---
+
+# 1. Add SSH public key to server #
+
+- name: Add SSH public key to Ubuntu server (Create SSH directory for user)
+  file:
+    path: "/home/{{ ssh_user }}/.ssh"
+    state: directory
+    mode: "0700"
+    owner: "{{ ssh_user }}"
+    group: "{{ ssh_user }}"
+  become: true
+
+- name: Add SSH public key to authorized_keys
+  authorized_key:
+    user: "{{ ssh_user }}"
+    key: "{{ ssh_public_key }}"
+    state: present
+  become: true
+
+##################################################################
+
+# 2. Change SSH config file and port #
+
+- name: Copy config sshd_config file to server
+  copy:
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
+    remote_src: no
+  become: yes
+
+- name: Change SSH port in sshd_config
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?Port"
+    line: "Port {{ ssh_port }}"
+    backup: yes
+  become: yes
+
+##################################################################

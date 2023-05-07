@@ -1,0 +1,41 @@
+## Install dependencies role tasks ##
+
+---
+
+# 1. Install Certbot - Nginx - Docker and their dependencies #
+
+- name: Install dependencies packages
+  apt:
+    update_cache: yes
+    state: latest
+    name:
+    - apt-transport-https
+    - ca-certificates
+    - software-properties-common
+    - python3-pip
+    - docker.io
+    - nginx
+    - certbot
+    - python3-certbot-nginx
+  become: true
+
+- name: Install Docker SDK for Python
+  pip:
+    name: docker
+
+- script: /usr/sbin/usermod -aG docker {{ docker_access_user }}
+  become: true
+
+##################################################################
+
+# 2. Install Docker Compose #
+
+- name: Install Docker Compose
+  shell: mkdir -p /home/{{ docker_access_user }}/.docker/cli-plugins/ && curl -SL https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-linux-x86_64 -o /home/{{ docker_access_user }}/.docker/cli-plugins/docker-compose
+  become: true
+
+- name: Set permission for Docker Compose
+  shell: chmod +x /home/{{ docker_access_user }}/.docker/cli-plugins/docker-compose
+  become: true
+
+##################################################################

@@ -1,0 +1,12 @@
+
+---
+- name: Server Configs
+  hosts: all
+  roles:
+
+#    - role: ../roles/user-config
+#    - role: ../roles/update-server
+#    - role: ../roles/install-deps
+#    - role: ../roles/gitlab-runner
+#    - role: ../roles/ssh-config
+    - role: ../roles/fail2ban

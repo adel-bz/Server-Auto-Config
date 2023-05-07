@@ -1,0 +1,49 @@
+## Gitlab Runner role tasks ##
+
+---
+
+# 1.Install Gitlab Runner on server #
+
+- name: Add GitLab Runner GPG key
+  apt_key:
+    url: https://packages.gitlab.com/gpg.key
+    state: present
+  become: true
+
+- name: Add GitLab Runner repository
+  apt_repository:
+    repo: deb https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_distribution_release }} main
+    state: present
+  become: true
+
+- name: Update Ubuntu packages
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: Install GitLab Runner
+  apt:
+    name: gitlab-runner
+    state: latest
+  become: true
+
+##################################################################
+
+# 2.Gitlab Runner registery #
+
+- name: Register GitLab Runner
+  command: gitlab-runner register \
+    --non-interactive \
+    --registration-token "{{ gitlab_runner_registration_token }}" \
+    --url "{{ gitlab_runner_url }}" \
+    --name "{{ gitlab_runner_name }}" \
+    --executor "{{ gitlab_runner_executor }}"
+    --tag-list "{{ gitlab_runner_tags }}"
+  register: gitlab_runner_register_output
+  become: true
+
+- name: Display GitLab Runner registration output
+  debug:
+    var: gitlab_runner_register_output.stdout_lines
+
+##################################################################

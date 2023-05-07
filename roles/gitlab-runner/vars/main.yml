@@ -1,0 +1,12 @@
+## Gitlab Runner role variables ##
+########################################################
+gitlab_runner_registration_token: "xtjkw8NK6ddDsBi6DMh1"
+########################################################
+gitlab_runner_name: "ansible-test"
+########################################################
+gitlab_runner_url: "https://gitlab.digialpha.org/"
+########################################################
+gitlab_runner_executor: "shell"
+########################################################
+gitlab_runner_tags: "test-tag"
+########################################################

@@ -1,0 +1,22 @@
+## Server Update and Upgrade role tasks ##
+
+---
+
+# 1. Server Update repositorys #
+
+- name: Update Ubuntu packages
+  become: yes
+  apt:
+    update_cache: yes
+
+##################################################################
+
+# 2. Serveer Upgrade packages #
+
+- name: Upgrade packages
+  apt:
+    upgrade: yes
+    autoremove: yes
+  become: yes
+
+##################################################################

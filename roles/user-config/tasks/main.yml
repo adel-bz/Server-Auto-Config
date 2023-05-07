@@ -1,0 +1,26 @@
+## User config role tasks ##
+
+---
+
+# 1. Create a new user and give sudo privilefes to user #
+
+- name: Create a new user
+  become: yes
+  user:
+    name: "{{ username }}"
+    password: "{{ password | password_hash('sha512') }}"
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    state: present
+
+- name: Update visudo file
+  become: yes
+  lineinfile:
+    dest: /etc/sudoers
+    insertafter: "@includedir /etc/sudoers.d"
+    line: "{{username}} ALL=(ALL) NOPASSWD: ALL"
+    state: present
+    validate: "visudo -cf %s"
+
+##################################################################
