@@ -23,6 +23,16 @@
   ansible.builtin.service:
     name: fail2ban.service
     enabled: yes
+<<<<<<< HEAD
+
+- name: Start service fail2ban.service, if not started
+  ansible.builtin.service:
+    name: fail2ban.service
+    state: started
+
+#################################################
+=======
+>>>>>>> 728afa5 (add new commit)
 
 - name: Start service fail2ban.service, if not started
   ansible.builtin.service:
@@ -31,10 +41,3 @@
 
 #################################################
 
-# 2. Restart server #
-
-- name: Restart server
-  reboot:
-  become: yes
-
-#################################################

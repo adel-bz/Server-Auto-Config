@@ -1,12 +1,20 @@
 ## Gitlab Runner role variables ##
 ########################################################
+<<<<<<< HEAD
 gitlab_runner_registration_token: "$registry_token"
+=======
+gitlab_runner_registration_token: "xtjkw8NK6ddDsBi6DMh1"
+>>>>>>> 728afa5 (add new commit)
 ########################################################
-gitlab_runner_name: "$gitlab_runner_name"
+gitlab_runner_name: "hami-gift"
 ########################################################
+<<<<<<< HEAD
 gitlab_runner_url: "$gitlab_runner_url"
+=======
+gitlab_runner_url: "https://gitlab.digialpha.org/"
+>>>>>>> 728afa5 (add new commit)
 ########################################################
 gitlab_runner_executor: "shell"
 ########################################################
-gitlab_runner_tags: "$gitlab_runner_tags"
+gitlab_runner_tags: "hami-gift"
 ########################################################

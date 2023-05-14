@@ -1,0 +1,9 @@
+## Restart role task ##
+
+# 1. Restart server #
+
+- name: Restart server
+  reboot:
+  become: yes
+
+#################################################
