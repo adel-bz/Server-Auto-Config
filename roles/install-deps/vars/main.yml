@@ -1,6 +1,6 @@
 ## Install dependencies role variables ##
 ########################################################
-docker_access_user: test
+docker_access_user: $server_user
 ########################################################
 docker_compose_version: v1.29.2
 ########################################################

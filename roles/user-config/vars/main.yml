@@ -1,6 +1,6 @@
 ## User config role variables ##
 ########################################################
-username: "test"
+username: "$server_user"
 ########################################################
-password: "BY9fv8IsaIuSbeBh"
+password: "$server_password"
 ########################################################
