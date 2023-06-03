@@ -1,5 +1,4 @@
 #inventory.cnf
 [servers]
 
-#digibuild
-hami-gift
+test-net

@@ -2,7 +2,7 @@
 ########################################################
 ssh_port: 2023
 ########################################################
-ssh_user: "hami"
+ssh_user: "test"
 ########################################################
-ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC9FNMfezx1byRETyzbqETGkreWK28PhH0U32iW26ZHy6lNAvu9qTNkR5pcS4dSnZrY0Mlcizwm4Zb3kAMR9piDX8/AvqHxqexlwbqM/Y8+FlSYolCSo1Ru7v5gFtNBC0N6M/fR0g0NZHomrvdeDfuwe/kSpwKIPRYjlHszWx9xf7AMFtEAARb597PL0wO0uLDHPzluzS1I8uf/FFR89EPRWwdAb0v9/6QS4sB0Ccg89mw9tBF+DMfp20hlZBg0NLXzkZBIHklSfyQmI0cGDrp5+2fU/t/hkqY2pE+0vINHcaG9Re+HRBRVODYc6uiFDYGqJfAFHjd11VEo1HR+DViInVaOAnYRUAuRt8NSPuKZwfUrpeeuXBp1nRXITVXNFQWHp64FhFdaC8Ydgolu7bMgVTdoscYJhKrpK16rN57OXXFAMhWUmJ1xxYiGI8szKYSkHR+iOVBHWcAfyWF50Ru+sdVFc1Xs4msa4Nfml2aJ60+iUwXqF6fXVOnkZQ2tVyE= adel@adel"
+ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCv9Od15wq77k/N9DSBC8/TFGPkrrSBd3Dfzx93ipPixbF6nOBVAXy2OJ06LCSMabD4eAthRkbslpeD6q+7M8Uc2FOyTDi9eTkmk6Ht85dnW4zgxI///c3KpC/LVssmhz5Idbt+TqDk8mfyKBoCtcJ3dlaG8mOz7Dajwvrlh6S4a84cQCuISQCeMn2md468ThTbipTa6C5OMTHwHK74IYO9OpBUvlRwEoO+kz/lE++eirbo1YEjK3ClJry7tf8GXxNdXva3KN99HudDfowcWVCJhVxhWRIFlo+3g+XRZRrZ0htygR+WRCCHho79c0WMRZW19g923+miNBVzA6k2HndbOh0lQWCvkXNqO20oqRV9miv09iMO4mWv+DZW9feJ+HlHN2debMTzk+Eoim/50X9n4g8pFJdttfXyCINuQgalX+yGkdIwu/b8YJCttEnvnwN33QmIPtB+aa280a9TgYIuh6QHOmMZ5mCUBAMp5F5RvCgLbt5b3AsilR/zy3XKaiE= adel@build"
 ########################################################
