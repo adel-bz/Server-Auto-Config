@@ -23,7 +23,11 @@
   pip:
     name: docker
 
-- script: /usr/sbin/usermod -aG docker {{ docker_access_user }}
+- name: Add user to Docker group
+  user:
+    name: "{{ docker_access_user }}"
+    groups: docker
+    append: yes
   become: true
 
 ##################################################################

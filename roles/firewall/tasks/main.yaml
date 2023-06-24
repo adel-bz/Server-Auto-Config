@@ -1,0 +1,19 @@
+## Firewall config role task ##
+
+---
+
+# 1. Open all important port on UFW #
+
+- name: open HTTP
+  command: sudo ufw allow 80
+  become: yes
+
+- name: open HTTPS 443
+  command: sudo ufw allow 443
+  become: yes
+
+- name: open ssh port
+  command: sudo ufw allow "{{ ssh_port }}"
+  become: yes
+
+##################################################################

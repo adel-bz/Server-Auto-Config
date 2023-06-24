@@ -1,8 +1,8 @@
 ## Harden server role variables ##
 ########################################################
-ssh_port: $ssh_port
+ssh_port: 3536
 ########################################################
-ssh_user: "$server_user"
+ssh_user: "ubuntu"
 ########################################################
-ssh_public_key: "$ssh_public_key
+ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC9FNMfezx1byRETyzbqETGkreWK28PhH0U32iW26ZHy6lNAvu9qTNkR5pcS4dSnZrY0Mlcizwm4Zb3kAMR9piDX8/AvqHxqexlwbqM/Y8+FlSYolCSo1Ru7v5gFtNBC0N6M/fR0g0NZHomrvdeDfuwe/kSpwKIPRYjlHszWx9xf7AMFtEAARb597PL0wO0uLDHPzluzS1I8uf/FFR89EPRWwdAb0v9/6QS4sB0Ccg89mw9tBF+DMfp20hlZBg0NLXzkZBIHklSfyQmI0cGDrp5+2fU/t/hkqY2pE+0vINHcaG9Re+HRBRVODYc6uiFDYGqJfAFHjd11VEo1HR+DViInVaOAnYRUAuRt8NSPuKZwfUrpeeuXBp1nRXITVXNFQWHp64FhFdaC8Ydgolu7bMgVTdoscYJhKrpK16rN57OXXFAMhWUmJ1xxYiGI8szKYSkHR+iOVBHWcAfyWF50Ru+sdVFc1Xs4msa4Nfml2aJ60+iUwXqF6fXVOnkZQ2tVyE= adel@adel"
 ########################################################

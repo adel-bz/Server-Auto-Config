@@ -1,13 +1,13 @@
 ## Gitlab Runner role variables ##
 ########################################################
-gitlab_runner_registration_token: "$registry_token"
+gitlab_runner_registration_token: "GR1348941sSZhSWtGJYoKbojZDWJe"
 ########################################################
-gitlab_runner_name: "$gitlab_runner_name"
+gitlab_runner_name: "investing"
 ########################################################
-gitlab_runner_url: "$gitlab_runner_url"
+gitlab_runner_url: "https://gitlab.digialpha.org/"
 ########################################################
 ########################################################
 gitlab_runner_executor: "shell"
 ########################################################
-gitlab_runner_tags: "$tag"
+gitlab_runner_tags: "investing"
 ########################################################

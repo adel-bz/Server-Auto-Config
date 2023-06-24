@@ -1,4 +1,4 @@
 #inventory.cnf
 [servers]
 
-test-net
+aws-ansible
