@@ -1,4 +1,5 @@
 #inventory.cnf
 [servers]
 
-aws-ansible
+host1
+host2

@@ -1,13 +1,13 @@
 ## All variables for our roles ##
 ---
 ########################################################
-ssh_port: "2023"
+ssh_port: "$port"
 ########################################################
-user: "adel"
+user: "$user"
 ########################################################
-password: "SJMuQ8lg90mp0bWB43"
+password: "$password"
 ########################################################
-ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCv9Od15wq77k/N9DSBC8/TFGPkrrSBd3Dfzx93ipPixbF6nOBVAXy2OJ06LCSMabD4eAthRkbslpeD6q+7M8Uc2FOyTDi9eTkmk6Ht85dnW4zgxI///c3KpC/LVssmhz5Idbt+TqDk8mfyKBoCtcJ3dlaG8mOz7Dajwvrlh6S4a84cQCuISQCeMn2md468ThTbipTa6C5OMTHwHK74IYO9OpBUvlRwEoO+kz/lE++eirbo1YEjK3ClJry7tf8GXxNdXva3KN99HudDfowcWVCJhVxhWRIFlo+3g+XRZRrZ0htygR+WRCCHho79c0WMRZW19g923+miNBVzA6k2HndbOh0lQWCvkXNqO20oqRV9miv09iMO4mWv+DZW9feJ+HlHN2debMTzk+Eoim/50X9n4g8pFJdttfXyCINuQgalX+yGkdIwu/b8YJCttEnvnwN33QmIPtB+aa280a9TgYIuh6QHOmMZ5mCUBAMp5F5RvCgLbt5b3AsilR/zy3XKaiE= adel@build"
+ssh_public_key: "$ssh_public_key"
 ########################################################
 gitlab_runner_registration_token: "$token"
 ########################################################
