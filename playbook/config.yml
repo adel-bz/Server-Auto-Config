@@ -1,13 +1,26 @@
+## Organizing roles and group variables ##
+
 ---
+
+########################################################
+
+# 1. Prioritise roles #
 - name: Server Configs
   hosts: all
   roles:
 
     #- role: ../roles/user-config
     #- role: ../roles/update-server
-    - role: ../roles/install-deps
+    #- role: ../roles/install-deps
     #- role: ../roles/gitlab-runner
-    - role: ../roles/ssh-config
-#    - role: ../roles/fail2ban
+    #- role: ../roles/ssh-config
+    #- role: ../roles/fail2ban
     - role: ../roles/firewall
-    - role: ../roles/restart
+
+########################################################
+
+# 2. Assigning variables to all roles #
+  vars:
+    - vars: ./group_vars/all.yml
+
+########################################################

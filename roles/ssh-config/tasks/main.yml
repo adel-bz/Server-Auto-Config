@@ -6,16 +6,16 @@
 
 - name: Add SSH public key to Ubuntu server (Create SSH directory for user)
   file:
-    path: "/home/{{ ssh_user }}/.ssh"
+    path: "/home/{{ user }}/.ssh"
     state: directory
     mode: "0700"
-    owner: "{{ ssh_user }}"
-    group: "{{ ssh_user }}"
+    owner: "{{ user }}"
+    group: "{{ user }}"
   become: true
 
 - name: Add SSH public key to authorized_keys
   authorized_key:
-    user: "{{ ssh_user }}"
+    user: "{{ user }}"
     key: "{{ ssh_public_key }}"
     state: present
   become: true

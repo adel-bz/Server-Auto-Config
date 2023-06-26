@@ -7,7 +7,7 @@
 - name: Create a new user
   become: yes
   user:
-    name: "{{ username }}"
+    name: "{{ user }}"
     password: "{{ password | password_hash('sha512') }}"
     shell: /bin/bash
     groups: sudo
@@ -19,7 +19,7 @@
   lineinfile:
     dest: /etc/sudoers
     insertafter: "@includedir /etc/sudoers.d"
-    line: "{{username}} ALL=(ALL) NOPASSWD: ALL"
+    line: "{{ user }} ALL=(ALL) NOPASSWD: ALL"
     state: present
     validate: "visudo -cf %s"
 

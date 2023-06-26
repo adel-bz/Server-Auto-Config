@@ -4,16 +4,27 @@
 
 # 1. Open all important port on UFW #
 
-- name: open HTTP
+- name: Open HTTP port
   command: sudo ufw allow 80
   become: yes
 
-- name: open HTTPS 443
+- name: Open HTTPS port
   command: sudo ufw allow 443
   become: yes
 
-- name: open ssh port
+- name: Open SSH port
   command: sudo ufw allow "{{ ssh_port }}"
   become: yes
 
 ##################################################################
+
+# 2. Restart servers #
+
+- name: Reboot host and wait for it to restart
+  reboot:
+    msg: "Reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 60
+    pre_reboot_delay: 0
+    post_reboot_delay: 5
+  become: yes
