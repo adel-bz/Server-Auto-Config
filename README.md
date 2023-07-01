@@ -16,20 +16,16 @@ https://adamtheautomator.com/install-ansible/
 $ git clone https://github.com/adel-bz/Ansible-Server-Config.git
 ```
 ### Step 2:
-- Go to the project directory
+- Go to the project directory.
 ```
 $ cd Ansible-Server-Config
 ```
-
 ### Step 3:
-- Change variables
+- Change variables in the ```all.yml``` file in ```/playbook/group_vars``` directory.
   
- You can find all variables in the ```all.yml``` file in ```/playbook/group_vars``` directory.
-
 ### Step 4:
-- Add remote servers to the inventory file.
+- Add remote servers to the ```inventory.cnf``` file in ```/playbook``` directory.
 
-you can find ```inventory.cnf``` file in ```/playbook``` directory.
 
 #### Note 1: 
 This project only works on Ubuntu os (all versions) on a remote server.
@@ -38,3 +34,12 @@ This project only works on Ubuntu os (all versions) on a remote server.
 You have to use a config file for ssh to servers. You can use this link https://linuxize.com/post/using-the-ssh-config-file/
 
 Or use another way to add servers in inventory.cnf file. You can use this link https://www.cherryservers.com/blog/how-to-set-up-ansible-inventory-file
+
+- Change ```config.yml``` file in ```/playbook``` directory. if you don't need a role in ```config.yml``` file, you must comment that role.
+
+### Step 5:
+- Run the below command on your terminal in the ```/playbook``` directory.
+
+```
+ansible-playbook -i inventory.cnf config.yml
+``` 
