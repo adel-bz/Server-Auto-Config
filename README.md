@@ -13,12 +13,12 @@ https://adamtheautomator.com/install-ansible/
 ### Step 1:
 - Clone the project
 ```
-$ git clone https://github.com/adel-bz/Ansible-Server-Config.git
+git clone https://github.com/adel-bz/Ansible-Server-Config.git
 ```
 ### Step 2:
 - Go to the project directory.
 ```
-$ cd Ansible-Server-Config
+cd Ansible-Server-Config
 ```
 ### Step 3:
 - Change variables in the ```all.yml``` file in ```/playbook/group_vars``` directory.
