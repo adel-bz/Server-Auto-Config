@@ -55,11 +55,17 @@ You have to use a config file for ssh to servers. You can use this link https://
 
 Or use another way to add servers in inventory.cnf file. You can use this link https://www.cherryservers.com/blog/how-to-set-up-ansible-inventory-file
 
-- Change ```config.yml``` file in ```/playbook``` directory. if you don't need a role in ```config.yml``` file, you must comment that role.
+#### Note 3:
+Change ```config.yml``` file in ```/playbook``` directory. if you don't need a role in ```config.yml``` file, you must comment that role.
 
 ### Step 5:
 - Run the below command on your terminal in the ```/playbook``` directory.
 
 ```
 ansible-playbook -i inventory.cnf config.yml
+``` 
+- If a server needs a password for SSH connection, Run the below command to ask password:
+
+```
+ansible-playbook -i inventory.cnf config.yml -kK
 ``` 
