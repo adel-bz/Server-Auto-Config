@@ -65,7 +65,7 @@ cd Ansible-Server-Config
 > 
 > You have to use a config file for ssh to servers. You can use this link https://linuxize.com/post/using-the-ssh-config-file/
 >
-> Or use another way to add servers in inventory.cnf file. You can use this link https://www.cherryservers.com/blog/how-to-set-up-ansible-inventory-file
+> Or use another way to add servers to inventory.cnf file. You can use this link https://www.cherryservers.com/blog/how-to-set-up-ansible-inventory-file
 
 > **Note**
 > 
