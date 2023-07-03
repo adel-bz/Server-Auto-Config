@@ -1,6 +1,7 @@
 
 # Overview
-This project is about config servers with Ansible.
+This project is about config servers with Ansible. In this project, we install some dependence services like Docker and docker-compose for DevOps engineers.
+Also, we wrote some roles for hardening servers.
 We have 7 roles for the config servers:
 #### Role 1: 
 In this role, we create a new user for servers and give access to the user to run ``` sudo ``` command without a password.
@@ -12,13 +13,13 @@ This role is to install dependencies on servers. Dependencies include Nginx, Doc
 Role 4 is to install and register gitlab-runner on servers.
 #### Role 5:
 Role 5 is to config SSH service. First of all, we add SSH public key to servers for secure ssh connection and we change the ```sshd_config``` file in ```/etc/ssh/``` location with our sshd_config file. and in the end, we change SSH port.
-##### Note: The sshd_config file has the best practices config for SSH but you can use your sshd_config file instead of our sshd_config file#### Role 3:
+##### Note: The sshd_config file has the best practices config for SSH but you can use your sshd_config file instead of our sshd_config file.
 
 #### Role 6:
 This role is to install and config fail2ban. fail2ban is a service for controlling SSH connections.
 
 #### Role 7:
-Role 7 is the last role and this role is to config the UFW firewall, we open HTTP, HTTPS, and SSH ports on UFW, also we enable UFW on servers. in the end, we restart servers.
+Role 7 is the last role and this role is to config the UFW firewall, we open HTTP, HTTPS, and SSH ports on UFW, also we enable UFW on servers. in the end, we restart the servers.
 # Requirements
 
 ### Ansible
