@@ -1,6 +1,5 @@
 # Ansible Servers Config
 
-
 # Overview
 This project is about config servers with Ansible. In this project, we install some dependence services like Docker and docker-compose for DevOps engineers.
 Also, we wrote some roles for hardening servers.
