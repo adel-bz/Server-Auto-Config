@@ -23,17 +23,12 @@
   ansible.builtin.service:
     name: fail2ban.service
     enabled: yes
-
+  become: yes
+  
 - name: Start service fail2ban.service, if not started
   ansible.builtin.service:
     name: fail2ban.service
     state: started
-
+  become: yes
 #################################################
-
-
-- name: Start service fail2ban.service, if not started
-  ansible.builtin.service:
-    name: fail2ban.service
-    state: started
 
