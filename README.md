@@ -29,7 +29,7 @@ https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-4
 
 ### Firewall Role:
 - The firewall Role is the last role and this role is to config the UFW firewall, we open HTTP, HTTPS, and SSH ports on UFW, also we enable UFW on servers. in the end, we restart the servers.
-- 
+
 # Requirements
 
 ### Ansible
