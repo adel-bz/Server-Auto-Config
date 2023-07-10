@@ -1,7 +1,7 @@
 # Config Server With Ansible
 
 # Overview
-This project is about config Ubuntu servers with Ansible. In this project, we install some dependence services like Docker and docker-compose on servers for DevOps engineers.
+This project is about config Ubuntu servers with Ansible. In this project, we install some dependencies like Docker and docker-compose on servers for DevOps engineers.
 Also, we wrote some roles for hardening servers. We have 7 roles for the config Ubuntu servers.
 
 https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-464c-b103-7bfbad9174b4
@@ -84,8 +84,8 @@ ansible-playbook -i inventory.cnf config.yml -kK
 ``` 
 
 # Test Project
-If you will get an error like the below image it is mean your config is successful because you changed the SSH port and Ansible can't connect to the server with port 22.
+If you will get an error like the below image it is mean your config is successful. You will get this error because you changed the SSH port and Ansible can't connect to the server with port 22.
 ![Screenshot from 2023-07-03 17-32-03](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/9a9ef4cc-5a39-4c47-9d58-a729da706942)
 
-Or we don't have any errors like the below image.
+Or we won't have any errors like the below image.
 ![Screenshot from 2023-07-03 17-52-07](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/03e0c500-2a02-460c-a4b7-d200857ca954)
