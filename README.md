@@ -1,8 +1,8 @@
 # Config Server With Ansible
 
 # Overview
-This project is about config servers with Ansible. In this project, we install some dependence services like Docker and docker-compose on servers for DevOps engineers.
-Also, we wrote some roles for hardening servers. We have 7 roles for the config servers.
+This project is about config Ubuntu servers with Ansible. In this project, we install some dependence services like Docker and docker-compose on servers for DevOps engineers.
+Also, we wrote some roles for hardening servers. We have 7 roles for the config Ubuntu servers.
 
 https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-464c-b103-7bfbad9174b4
  
@@ -65,7 +65,7 @@ cd Ansible-Server-Config
 > 
 > You have to use a config file for ssh to servers. You can use this link https://linuxize.com/post/using-the-ssh-config-file/
 >
-> Or use another way to add servers to inventory.cnf file. You can use this link https://www.cherryservers.com/blog/how-to-set-up-ansible-inventory-file
+> Or use another way to add servers to inventory.cnf file. You can see this link https://www.cherryservers.com/blog/how-to-set-up-ansible-inventory-file
 
 > **Note**
 > 
