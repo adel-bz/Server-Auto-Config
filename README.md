@@ -15,7 +15,7 @@ We have 7 roles for the config Ubuntu servers.
 ### Update Servers Role: 
 - In this role, we update servers with ```apt-get update``` and ```apt-get upgrade``` commands.
 ### Install Dependencies Role: 
-- This role is to install dependencies on servers. Dependencies include Nginx, Docker, docker-compose, Certbot and etc.
+- This role is to install dependencies on servers. Dependencies include Nginx, Docker, docker-compose, Certbot, etc.
 ### Gitlab-Runner Role:
 - Gitlab-Runner Role is to install and register gitlab-runner on servers.
 ### SSH Role:
