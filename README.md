@@ -30,7 +30,7 @@ We have 7 roles for the config Ubuntu servers.
 - This role is to install and config fail2ban. fail2ban is a service for controlling SSH connections.
 
 ### Firewall Role:
-- The firewall Role is the last role and this role is to config the UFW firewall, we open HTTP, HTTPS, and SSH ports on UFW, also we enable UFW on servers. in the end, we restart the servers.
+- The firewall Role is the last one and this role is to config the UFW firewall, we open HTTP, HTTPS, and SSH ports on UFW, and also we enable UFW on servers. in the end, we restart the servers.
 
 # Requirements
 
