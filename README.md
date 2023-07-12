@@ -2,12 +2,14 @@
 
 # Overview
 This project is about config Ubuntu servers with Ansible. In this project, we install some dependencies like Docker and docker-compose on servers for DevOps engineers.
-Also, we wrote some roles for hardening servers. We have 7 roles for the config Ubuntu servers.
+Also, we wrote some roles for hardening servers.
 
 https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-464c-b103-7bfbad9174b4
  
 
 ## Roles
+We have 7 roles for the config Ubuntu servers.
+
 ### User Config Role: 
 - In this role, we create a new user for servers and give access to the user to run ``` sudo ``` command without a password.
 ### Update Servers Role: 
