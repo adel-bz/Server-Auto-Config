@@ -8,7 +8,7 @@ https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-4
  
 
 ## Roles
-### User Config Role : 
+### User Config Role: 
 - In this role, we create a new user for servers and give access to the user to run ``` sudo ``` command without a password.
 ### Update Servers Role: 
 - In this role, we update servers with ```apt-get update``` and ```apt-get upgrade``` commands.
