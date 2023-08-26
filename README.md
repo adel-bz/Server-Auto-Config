@@ -1,4 +1,4 @@
-# Config Server With Ansible
+# Server Auto Config
 
 # Overview
 This project is about config Ubuntu servers with Ansible. In this project, we install some dependencies like Docker and docker-compose on servers for DevOps engineers.
