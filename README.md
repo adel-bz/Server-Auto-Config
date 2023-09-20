@@ -91,3 +91,21 @@ If you will get an error like the below image it is mean your config is successf
 
 Or we won't have any errors like the below image.
 ![Screenshot from 2023-07-03 17-52-07](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/03e0c500-2a02-460c-a4b7-d200857ca954)
+
+# Contributing
+We welcome contributions from the community to improve the Server Auto Config. To contribute:
+
+1. Fork the repository.
+
+2. Create a new branch for your feature/fix:
+```
+git checkout -b feature-name
+```
+3. Commit your changes and push to your forked repository:
+```
+git commit -m "Add a descriptive commit message"
+git push origin feature-name
+```
+4. Create a pull request. Your changes will be reviewed, and once approved, they will be merged into the main branch.
+
+Please ensure your code adheres to the project's coding standards.
