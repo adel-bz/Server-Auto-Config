@@ -16,9 +16,9 @@ We have 7 roles for the config Ubuntu servers.
 
 Step 1: updating servers with ```apt-get update``` and ```apt-get upgrade``` commands and enabling automatic security updates.
   
-Step 2: Removing unnecessary packages and services
+Step 2: Removing unnecessary packages and services.
 
-Step 3: Removing old software packages and clean up the package cache
+Step 3: Removing old software packages and cleaning the package cache.
 ### Install Dependencies Role: 
 - This role is to install dependencies on servers. Dependencies include Nginx, Docker, docker-compose, Certbot, etc.
 ### Gitlab-Runner Role:
