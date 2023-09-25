@@ -12,8 +12,10 @@ We have 7 roles for the config Ubuntu servers.
 ### User Config Role: 
 - In this role, we create a new user for servers and give access to the user to run ``` sudo ``` command without a password.
 ### Manage packages Role: 
-- In this role, we have 3 steps. Step 1: updating servers with ```apt-get update``` and ```apt-get upgrade``` commands and enabling automatic security updates.
-- 
+- In this role, we have 3 steps.
+
+Step 1: updating servers with ```apt-get update``` and ```apt-get upgrade``` commands and enabling automatic security updates.
+  
 Step 2: Removing unnecessary packages and services
 
 Step 3: Removing old software packages and clean up the package cache
