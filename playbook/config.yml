@@ -10,7 +10,7 @@
   roles:
 
     - role: ../roles/user-config
-    - role: ../roles/update-server
+    - role: ../roles/manage-packages
     - role: ../roles/install-deps
     - role: ../roles/gitlab-runner
     - role: ../roles/ssh-config

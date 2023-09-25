@@ -12,8 +12,10 @@ We have 7 roles for the config Ubuntu servers.
 
 ### User Config Role: 
 - In this role, we create a new user for servers and give access to the user to run ``` sudo ``` command without a password.
-### Update Servers Role: 
-- In this role, we update servers with ```apt-get update``` and ```apt-get upgrade``` commands.
+### Manage packages Role: 
+- In this role, we have 3 step. Step1: updating servers with ```apt-get update``` and ```apt-get upgrade``` commands and enabling automatic security updates.
+Step2: Removing unnecessary packages and services
+Step3: Removing old software packages and clean up the package cache
 ### Install Dependencies Role: 
 - This role is to install dependencies on servers. Dependencies include Nginx, Docker, docker-compose, Certbot, etc.
 ### Gitlab-Runner Role:

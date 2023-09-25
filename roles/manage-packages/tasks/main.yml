@@ -11,12 +11,19 @@
 
 ##################################################################
 
-# 2. Serveer Upgrade packages #
+# 2. Server Upgrade packages #
 
 - name: Upgrade packages
   apt:
     upgrade: yes
-    autoremove: yes
+  become: yes
+
+##################################################################
+
+# 3. Execute bash.sh file #
+
+- name: Execute the bash.sh file
+  script: ../files/bash.sh
   become: yes
 
 ##################################################################
