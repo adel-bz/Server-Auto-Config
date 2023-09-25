@@ -1,8 +1,7 @@
 # Server Auto Config
 
-# Overview
-Server-auto-configs is about automatic config Ubuntu servers with Ansible. In this project, it install some requirements like Docker and docker-compose on servers for a DevOps engineer. 
-Also, it has some roles for hardening servers.
+# Introduction
+Welcome to the Server Auto-Config Repository! This GitHub repository provides powerful tools and scripts for automating server setup and configuration. Whether you're a sysadmin/DevOps engineer looking to save time or a developer streamlining server provisioning, this repository simplifies the process, ensuring reliability and security. Join our community of contributors and experience the benefits of server automation today.
 
 https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-464c-b103-7bfbad9174b4
  
@@ -13,9 +12,11 @@ We have 7 roles for the config Ubuntu servers.
 ### User Config Role: 
 - In this role, we create a new user for servers and give access to the user to run ``` sudo ``` command without a password.
 ### Manage packages Role: 
-- In this role, we have 3 step. Step1: updating servers with ```apt-get update``` and ```apt-get upgrade``` commands and enabling automatic security updates.
-Step2: Removing unnecessary packages and services
-Step3: Removing old software packages and clean up the package cache
+- In this role, we have 3 steps. Step 1: updating servers with ```apt-get update``` and ```apt-get upgrade``` commands and enabling automatic security updates.
+- 
+Step 2: Removing unnecessary packages and services
+
+Step 3: Removing old software packages and clean up the package cache
 ### Install Dependencies Role: 
 - This role is to install dependencies on servers. Dependencies include Nginx, Docker, docker-compose, Certbot, etc.
 ### Gitlab-Runner Role:
@@ -88,7 +89,7 @@ ansible-playbook -i inventory.cnf config.yml -kK
 ``` 
 
 # Test Project
-If you will get an error like the below image it is mean your config is successful. You will get this error because you changed the SSH port and Ansible can't connect to the server with port 22.
+If you will get an error like the below image it means your config is successful. You will get this error because you changed the SSH port and Ansible can't connect to the server with port 22.
 ![Screenshot from 2023-07-03 17-32-03](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/9a9ef4cc-5a39-4c47-9d58-a729da706942)
 
 Or we won't have any errors like the below image.
@@ -103,7 +104,7 @@ We welcome contributions from the community to improve the Server Auto Config. T
 ```
 git checkout -b feature-name
 ```
-3. Commit your changes and push to your forked repository:
+3. Commit your changes and push them to your forked repository:
 ```
 git commit -m "Add a descriptive commit message"
 git push origin feature-name
