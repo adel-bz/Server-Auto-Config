@@ -9,11 +9,11 @@
   hosts: all
   roles:
 
-    - role: ../roles/user-config
-    - role: ../roles/manage-packages
-    - role: ../roles/install-deps
-    - role: ../roles/gitlab-runner
-    - role: ../roles/ssh-config
+    - role: ../roles/user_config
+    - role: ../roles/manage_packages
+    - role: ../roles/install_deps
+    - role: ../roles/gitlab_runner
+    - role: ../roles/ssh_config
     - role: ../roles/fail2ban
     - role: ../roles/firewall
 
