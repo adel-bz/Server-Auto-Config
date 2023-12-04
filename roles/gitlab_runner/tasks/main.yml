@@ -36,9 +36,7 @@
     --non-interactive \
     --registration-token "{{ gitlab_runner_registration_token }}" \
     --url "{{ gitlab_runner_url }}" \
-    --name "{{ gitlab_runner_name }}" \
     --executor "{{ gitlab_runner_executor }}"
-    --tag-list "{{ gitlab_runner_tags }}"
   register: gitlab_runner_register_output
   become: true
 
