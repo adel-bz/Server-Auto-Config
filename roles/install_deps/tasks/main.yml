@@ -12,16 +12,41 @@
     - apt-transport-https
     - ca-certificates
     - software-properties-common
+    - curl
+    - gnupg
     - python3-pip
-    - docker.io
+    - libffi-dev
+    - python3-dev
     - nginx
     - certbot
     - python3-certbot-nginx
   become: true
 
-- name: Install Docker SDK for Python
-  pip:
+##################################################################
+
+# 2. Install Docker #
+
+- name: Add Docker GPG apt Key
+  shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg && chmod a+r /etc/apt/keyrings/docker.gpg
+  become: true
+
+- name: Add Docker repository
+  shell: echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  become: true
+
+- name: Install docker-ce
+  apt:
+    update_cache: yes
+    name: docker-ce
+    state: present
+  become: true
+
+- name: Run and enable docker
+  service:
     name: docker
+    state: started
+    enabled: true
+  become: true
 
 - name: Add user to Docker group
   user:
@@ -32,14 +57,12 @@
 
 ##################################################################
 
-# 2. Install Docker Compose #
+# 3. Install Docker Compose #
 
-- name: Install Docker Compose
-  shell: curl -L "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  become: true
-
-- name: Set permission for Docker Compose
-  shell: chmod +x /usr/local/bin/docker-compose
+- name: Install Docker Compose Plugin
+  apt:
+    name: docker-compose-plugin
+    state: present
   become: true
 
 ##################################################################

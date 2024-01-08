@@ -20,7 +20,7 @@ Step 2: Removing unnecessary packages and services.
 
 Step 3: Removing old software packages and cleaning the package cache.
 ### Install Dependencies Role: 
-- This role is to install dependencies on servers. Dependencies include Nginx, Docker, docker-compose, Certbot, etc.
+- This role is to install dependencies on servers. Dependencies include Nginx, Docker, docker-compose-plugin, Certbot, etc.
 ### Gitlab-Runner Role:
 - Gitlab-Runner Role is to install and register gitlab-runner on servers.
 ### SSH Role:
@@ -40,9 +40,11 @@ Step 3: Removing old software packages and cleaning the package cache.
 # Requirements
 
 ### Ansible
-You only have one Requirement. Install Ansible, You can use the below link to install Ansible on different os. 
+You just have two Requirement. Install Ansible, You can use the below link to install Ansible on different os. 
 
 https://adamtheautomator.com/install-ansible/
+
+#### Server OS: Ubuntu all versions
 
 # Usage
 
