@@ -11,8 +11,6 @@ ssh_public_key: "$ssh_public_key"
 ########################################################
 gitlab_runner_registration_token: "$token"
 ########################################################
-gitlab_runner_name: "$runner-name"
-########################################################
 gitlab_runner_url: "$url"
 ########################################################
 gitlab_runner_executor: "shell"
