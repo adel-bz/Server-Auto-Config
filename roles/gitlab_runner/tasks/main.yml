@@ -45,3 +45,16 @@
     var: gitlab_runner_register_output.stdout_lines
 
 ##################################################################
+
+# 3.Gitlab Runner Permissions
+
+- name: Update visudo file
+  become: yes
+  lineinfile:
+    dest: /etc/sudoers
+    insertafter: "@includedir /etc/sudoers.d"
+    line: "gitlab-runner ALL=(ALL) NOPASSWD: ALL"
+    state: present
+    validate: "visudo -cf %s"
+
+##################################################################
