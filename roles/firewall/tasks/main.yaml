@@ -2,7 +2,7 @@
 
 ---
 
-# 1. Open all important port on UFW #
+# 1. Open all important ports on UFW #
 
 - name: Open HTTP port
   command: sudo ufw allow 80
