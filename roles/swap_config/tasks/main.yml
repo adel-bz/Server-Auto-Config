@@ -1,0 +1,53 @@
+## Enable Swap for server ""
+
+---
+
+# 1. Config Swap #
+
+- name: Check if swap is already configured
+  command: swapon --show
+  register: swap_status
+  changed_when: false
+
+- name: Create a swap file
+  command: fallocate -l 4G /swapfile
+  when: swap_status.stdout == ""
+  register: create_swap_file
+  become: true
+
+- name: Set correct permissions for swap file
+  file:
+    path: /swapfile
+    mode: '0600'
+  when: create_swap_file is changed
+  become: true
+
+- name: Make the file a swap space
+  command: mkswap /swapfile
+  when: create_swap_file is changed
+  become: true
+
+- name: Enable the swap file
+  command: swapon /swapfile
+  when: create_swap_file is changed
+  become: true
+
+- name: Make swap file permanent in fstab
+  lineinfile:
+    dest: /etc/fstab
+    line: "/swapfile none swap sw 0 0"
+    state: present
+  become: true
+
+- name: Set swapiness and cache pressure
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { name: 'vm.swappiness', value: '10' }
+    - { name: 'vm.vfs_cache_pressure', value: '50' }
+  become: true
+
+##################################################################

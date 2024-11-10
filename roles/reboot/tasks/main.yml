@@ -1,0 +1,16 @@
+# Reboot servers after config #
+
+---
+
+# 1. Restart servers #
+
+- name: Reboot hosts and wait for it to restart
+  reboot:
+    msg: "Reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 60
+    pre_reboot_delay: 0
+    post_reboot_delay: 5
+  become: yes
+
+##################################################################

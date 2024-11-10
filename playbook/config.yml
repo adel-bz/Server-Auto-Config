@@ -14,8 +14,10 @@
     - role: ../roles/install_deps
     - role: ../roles/gitlab_runner
     - role: ../roles/ssh_config
+    - role: ../roles/swap_config
     - role: ../roles/fail2ban
     - role: ../roles/firewall
+    - role: ../roles/reboot
 
 ########################################################
 
@@ -24,3 +26,4 @@
     - vars: ./group_vars/all.yml
 
 ########################################################
+

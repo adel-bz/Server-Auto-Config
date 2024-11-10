@@ -7,7 +7,7 @@ https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-4
  
 
 ## Roles
-We have 7 roles for the config Ubuntu servers.
+We have 8 roles for the config Ubuntu servers.
 
 ### User Config Role: 
 - In this role, we create a new user for servers and give access to the user to run ``` sudo ``` command without a password.
@@ -30,6 +30,9 @@ Step 3: Removing old software packages and cleaning the package cache.
 > **Note**
 > 
 > The ```sshd_config``` file has the best practices config for SSH but you can use your ```sshd_config``` file instead of our ```sshd_config``` file.
+
+### Swap Config Role:
+- The role enables swap with 4G capacity on servers. Also, you can change the capacity in ```/roles/swap_config/tasks/main.yml```
 
 ### Fail2ban Role:
 - This role is to install and config fail2ban. fail2ban is a service for controlling SSH connections.
@@ -116,3 +119,4 @@ git push origin feature-name
 4. Create a pull request. Your changes will be reviewed, and once approved, they will be merged into the main branch.
 
 Please ensure your code adheres to the project's coding standards.
+
