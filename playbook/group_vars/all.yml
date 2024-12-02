@@ -1,17 +1,17 @@
 ## All variables for our roles ##
 ---
 ########################################################
-ssh_port: "2770"
+ssh_port: "$port"
 ########################################################
-user: "ubuntu"
+user: "$user"
 ########################################################
-password: "Digialpha@12131213"
+password: "$password"
 ########################################################
-ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC9FNMfezx1byRETyzbqETGkreWK28PhH0U32iW26ZHy6lNAvu9qTNkR5pcS4dSnZrY0Mlcizwm4Zb3kAMR9piDX8/AvqHxqexlwbqM/Y8+FlSYolCSo1Ru7v5gFtNBC0N6M/fR0g0NZHomrvdeDfuwe/kSpwKIPRYjlHszWx9xf7AMFtEAARb597PL0wO0uLDHPzluzS1I8uf/FFR89EPRWwdAb0v9/6QS4sB0Ccg89mw9tBF+DMfp20hlZBg0NLXzkZBIHklSfyQmI0cGDrp5+2fU/t/hkqY2pE+0vINHcaG9Re+HRBRVODYc6uiFDYGqJfAFHjd11VEo1HR+DViInVaOAnYRUAuRt8NSPuKZwfUrpeeuXBp1nRXITVXNFQWHp64FhFdaC8Ydgolu7bMgVTdoscYJhKrpK16rN57OXXFAMhWUmJ1xxYiGI8szKYSkHR+iOVBHWcAfyWF50Ru+sdVFc1Xs4msa4Nfml2aJ60+iUwXqF6fXVOnkZQ2tVyE= adel@adel"
+ssh_public_key: "$your_ssh_key"
 ########################################################
-gitlab_runner_registration_token: "glrt-oBxs6rizcw2zV3x2c5CC"
+gitlab_runner_registration_token: "$gitlab_runner_registration_token"
 ########################################################
-gitlab_runner_url: "https://gitlab.digialpha.org/"
+gitlab_runner_url: "$gitlab_url"
 ########################################################
 gitlab_runner_executor: "shell"
 ########################################################
