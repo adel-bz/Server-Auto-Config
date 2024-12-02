@@ -1,4 +1,5 @@
 #inventory.cnf
 [servers]
 
-safe-payment
+server1
+server2
