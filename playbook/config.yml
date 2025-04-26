@@ -23,7 +23,7 @@
 
 # 2. Assigning variables to all roles #
   vars:
-    - vars: ./group_vars/all.yml
+    vars: ./group_vars/all.yml
 
 ########################################################
 
