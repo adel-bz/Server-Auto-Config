@@ -32,14 +32,14 @@ SyslogFacility AUTH
 
 # Authentication:
 
-LoginGraceTime 1m
+LoginGraceTime 30s
 #PermitRootLogin prohibit-password
 PermitRootLogin no
-#StrictModes yes
+StrictModes yes
 MaxAuthTries 5
 MaxSessions 2
 
-#PubkeyAuthentication yes
+PubkeyAuthentication yes
 
 # Expect .ssh/authorized_keys2 to be disregarded by default in future.
 #AuthorizedKeysFile	.ssh/authorized_keys .ssh/authorized_keys2
@@ -93,7 +93,7 @@ UsePAM yes
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes
 #GatewayPorts no
-X11Forwarding yes
+X11Forwarding no
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 #PermitTTY yes
@@ -102,17 +102,17 @@ PrintMotd no
 #TCPKeepAlive yes
 #PermitUserEnvironment no
 #Compression delayed
-#ClientAliveInterval 0
-#ClientAliveCountMax 3
+ClientAliveInterval 30
+ClientAliveCountMax 2
 UseDNS no
 #PidFile /var/run/sshd.pid
-MaxStartups 3
+MaxStartups 5
 #PermitTunnel no
 #ChrootDirectory none
 #VersionAddendum none
 
 # no default banner path
-Banner /etc/issue
+#Banner /etc/issue
 
 # Allow client to pass locale environment variables
 AcceptEnv LANG LC_*
@@ -122,7 +122,6 @@ Subsystem	sftp	/usr/lib/openssh/sftp-server
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
-#	X11Forwarding no
 #	AllowTcpForwarding no
 #	PermitTTY no
 #	ForceCommand cvs server
