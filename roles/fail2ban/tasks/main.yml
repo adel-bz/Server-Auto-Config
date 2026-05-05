@@ -7,28 +7,28 @@
 - name: Install Fail2Ban
   apt:
     name: fail2ban
-  become: yes
+  become: true
 
 - name: Configure Fail2Ban jail for SSH
-  copy:
-    src: jail.local
+  template:
+    src: jail.local.j2
     dest: /etc/fail2ban/jail.local
-    remote_src: no
     owner: root
     group: root
     mode: "0644"
-  become: yes
+  become: true
+  notify: Restart fail2ban
 
 - name: Enable service fail2ban.service, and not touch the state
   ansible.builtin.service:
     name: fail2ban.service
-    enabled: yes
-  become: yes
+    enabled: true
+  become: true
   
 - name: Start service fail2ban.service, if not started
   ansible.builtin.service:
     name: fail2ban.service
     state: started
-  become: yes
+  become: true
 #################################################
 

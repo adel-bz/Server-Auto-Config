@@ -5,9 +5,9 @@
 # 1. Server Update repositorys #
 
 - name: Update Ubuntu packages
-  become: yes
+  become: true
   apt:
-    update_cache: yes
+    update_cache: true
 
 ##################################################################
 
@@ -15,8 +15,8 @@
 
 - name: Upgrade packages
   apt:
-    upgrade: yes
-  become: yes
+    upgrade: true
+  become: true
 
 ##################################################################
 
@@ -24,6 +24,6 @@
 
 - name: Execute the bash.sh file
   script: ../files/bash.sh
-  become: yes
+  become: true
 
 ##################################################################

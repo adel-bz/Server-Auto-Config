@@ -9,8 +9,13 @@
   register: swap_status
   changed_when: false
 
-- name: Create a swap file
-  command: fallocate -l 4G /swapfile
+- name: Create swap file (fallocate, else dd)
+  shell: |
+    set -euo pipefail
+    if fallocate -l 4G /swapfile 2>/dev/null; then exit 0; fi
+    dd if=/dev/zero of=/swapfile bs=1M count=4096 status=none
+  args:
+    creates: /swapfile
   when: swap_status.stdout == ""
   register: create_swap_file
   become: true
@@ -39,12 +44,12 @@
     state: present
   become: true
 
-- name: Set swapiness and cache pressure
+- name: Set swappiness and cache pressure
   sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     state: present
-    reload: yes
+    reload: true
   loop:
     - { name: 'vm.swappiness', value: '10' }
     - { name: 'vm.vfs_cache_pressure', value: '50' }

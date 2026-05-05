@@ -4,26 +4,28 @@
 
 ########################################################
 
-# 1. Prioritise roles #
-- name: Server Configs
+# Play 1 — through SSH: group_vars in playbook/group_vars/ load automatically.
+- name: Server Configs through SSH
   hosts: all
   roles:
-
     - role: ../roles/user_config
     - role: ../roles/manage_packages
     - role: ../roles/install_deps
     - role: ../roles/gitlab_runner
     - role: ../roles/ssh_config
+  post_tasks:
+    - name: Apply SSH and other pending handlers before later roles
+      meta: flush_handlers
+
+########################################################
+
+# Play 2 — swap, fail2ban, firewall, reboot
+- name: Server Configs swap and hardening
+  hosts: all
+  roles:
     - role: ../roles/swap_config
     - role: ../roles/fail2ban
     - role: ../roles/firewall
     - role: ../roles/reboot
 
 ########################################################
-
-# 2. Assigning variables to all roles #
-  vars:
-    vars: ./group_vars/all.yml
-
-########################################################
-

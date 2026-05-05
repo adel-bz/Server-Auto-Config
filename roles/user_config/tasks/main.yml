@@ -5,17 +5,17 @@
 # 1. Create a new user and give sudo privilefes to user #
 
 - name: Create a new user
-  become: yes
+  become: true
   user:
     name: "{{ user }}"
     password: "{{ password | password_hash('sha512') }}"
     shell: /bin/bash
     groups: sudo
-    append: yes
+    append: true
     state: present
 
 - name: Update visudo file
-  become: yes
+  become: true
   lineinfile:
     dest: /etc/sudoers
     insertafter: "@includedir /etc/sudoers.d"

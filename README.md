@@ -1,122 +1,90 @@
 # Server Auto Config
 
-# Introduction
-Welcome to the Server Auto-Config Repository! This GitHub repository provides powerful tools and scripts for automating server setup and configuration. Whether you're a sysadmin/DevOps engineer looking to save time or a developer streamlining server provisioning, this repository simplifies the process, ensuring reliability and security. Join our community of contributors and experience the benefits of server automation today.
-
-https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-464c-b103-7bfbad9174b4
- 
+Ansible playbooks and roles to bootstrap Ubuntu servers: users, packages, Docker/Nginx/Certbot, GitLab Runner, SSH hardening, swap, Fail2ban, UFW, and a final reboot.
 
 ## Roles
-We have 8 roles for the config Ubuntu servers.
 
-### User Config Role: 
-- In this role, we create a new user for servers and give access to the user to run ``` sudo ``` command without a password.
-### Manage packages Role: 
-- In this role, we have 3 steps.
+There are **nine roles**. The playbook runs them in **two stages** (see `playbook/config.yml`): first through SSH configuration (with a handler flush so `sshd` restarts before the rest), then swap, Fail2ban, firewall, and reboot.
 
-Step 1: updating servers with ```apt-get update``` and ```apt-get upgrade``` commands and enabling automatic security updates.
-  
-Step 2: Removing unnecessary packages and services.
+| Order | Role | What it does |
+|------:|------|----------------|
+| 1 | **user_config** | Creates the managed user, adds sudo access (passwordless sudo as configured in the role). |
+| 2 | **manage_packages** | `apt` update/upgrade, then a script for unattended security updates and removal of a few legacy packages. |
+| 3 | **install_deps** | Nginx, Certbot, Docker CE, Docker Compose plugin, and related packages. |
+| 4 | **gitlab_runner** | Adds the GitLab Runner apt repo (keyring-based), installs Runner (with a binary fallback if apt fails), **registers once** if `/etc/gitlab-runner/config.toml` is missing, then sudo rules for `gitlab-runner` as in the role. |
+| 5 | **ssh_config** | Deploys `authorized_keys`, copies `sshd_config`, sets **SSH port** from `ssh_port` in `group_vars`, **restarts the SSH service** when config changes. |
+| 6 | **swap_config** | 4G swap file (adjust size in the role tasks if needed); `fallocate` with `dd` fallback. |
+| 7 | **fail2ban** | Installs Fail2ban; SSH jail port matches **`ssh_port`** from `group_vars`. |
+| 8 | **firewall** | UFW: allow HTTP/HTTPS and your SSH port, then `ufw --force enable`. |
+| 9 | **reboot** | Reboots the host (waits for it to come back). |
 
-Step 3: Removing old software packages and cleaning the package cache.
-### Install Dependencies Role: 
-- This role is to install dependencies on servers. Dependencies include Nginx, Docker, docker-compose-plugin, Certbot, etc.
-### Gitlab-Runner Role:
-- Gitlab-Runner Role is to install and register gitlab-runner on servers.
-### SSH Role:
-- SSH Role is to config SSH service. First of all, we add SSH public key to servers for secure ssh connection and we change the ```sshd_config``` file in ```/etc/ssh/``` location with our sshd_config file. and in the end, we change the SSH port.
+### Customization notes
 
+- Replace **`roles/ssh_config/files/sshd_config`** with your own file if you need different SSH policy; keep `Port` consistent with **`ssh_port`** in `playbook/group_vars/all.yml` (the role also forces the port line).
+- **Secrets:** use real values locally for `password`, `ssh_public_key`, and `gitlab_runner_registration_token`. Do not commit secrets; prefer [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html) or a private vars file for production.
 
-> **Note**
-> 
-> The ```sshd_config``` file has the best practices config for SSH but you can use your ```sshd_config``` file instead of our ```sshd_config``` file.
+> The banner image in the introduction may still point at assets from the older repo name on GitHub; clone URL below matches **Server-Auto-Config**.
 
-### Swap Config Role:
-- The role enables swap with 4G capacity on servers. Also, you can change the capacity in ```/roles/swap_config/tasks/main.yml```
+https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-464c-b103-7bfbad9174b4
 
-### Fail2ban Role:
-- This role is to install and config fail2ban. fail2ban is a service for controlling SSH connections.
+## Requirements
 
-### Firewall Role:
-- The firewall Role is the last one and this role is to config the UFW firewall, we open HTTP, HTTPS, and SSH ports on UFW, and also we enable UFW on servers. in the end, we restart the servers.
+- **Ansible** on your control machine ([installation options](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)).
+- **Target OS:** Ubuntu (roles use `apt` and Ubuntu-style service names, e.g. SSH service as `ssh`).
 
-# Requirements
+## Usage
 
-### Ansible
-You just have two Requirement. Install Ansible, You can use the below link to install Ansible on different os. 
+### 1. Clone
 
-https://adamtheautomator.com/install-ansible/
-
-#### Server OS: Ubuntu all versions
-
-# Usage
-
-### Step 1:
-- Clone the project
+```bash
+git clone https://github.com/adel-bz/Server-Auto-Config.git
+cd Server-Auto-Config
 ```
-git clone https://github.com/adel-bz/Ansible-Server-Config.git
-```
-### Step 2:
-- Go to the project directory.
-```
-cd Ansible-Server-Config
-```
-### Step 3:
-- Change variables in the ```all.yml``` file in ```/playbook/group_vars``` directory.
-  
-### Step 4:
-- Add remote servers to the ```inventory.cnf``` file in ```/playbook``` directory.
 
+### 2. Configure variables
 
-> **Note**
-> 
-> This project only works on Ubuntu OS (all versions) on a remote server.
+Edit **`playbook/group_vars/all.yml`** (e.g. `ssh_port`, `user`, `password`, `ssh_public_key`, GitLab URL and runner token). Variables in `playbook/group_vars/` are loaded automatically when you run the playbook from the `playbook/` directory.
 
+### 3. Configure inventory
 
-> **Note**
-> 
-> You have to use a config file for ssh to servers. You can use this link https://linuxize.com/post/using-the-ssh-config-file/
->
-> Or use another way to add servers to inventory.cnf file. You can see this link https://www.cherryservers.com/blog/how-to-set-up-ansible-inventory-file
+Edit **`playbook/inventory.cnf`** and list your hosts under `[servers]`. You can use hostnames that match **`~/.ssh/config`**, or see [Ansible inventory docs](https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html).
 
-> **Note**
-> 
-> Change ```config.yml``` file in ```/playbook``` directory. if you don't need a role in ```config.yml``` file, you must comment that role.
+### 4. Optional: trim roles
 
-### Step 5:
-- Run the below command on your terminal in the ```/playbook``` directory.
+Edit **`playbook/config.yml`** and comment out any role you do not need.
 
-```
+### 5. Run the playbook
+
+From the **`playbook/`** directory:
+
+```bash
 ansible-playbook -i inventory.cnf config.yml
-``` 
-- If a server needs a password for SSH connection, Run the below command to ask password:
-
 ```
+
+If SSH or sudo needs a password interactively:
+
+```bash
 ansible-playbook -i inventory.cnf config.yml -kK
-``` 
+```
 
-# Test Project
-If you will get an error like the below image it means your config is successful. You will get this error because you changed the SSH port and Ansible can't connect to the server with port 22.
-![Screenshot from 2023-07-03 17-32-03](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/9a9ef4cc-5a39-4c47-9d58-a729da706942)
+After a successful run, if you changed the SSH port, the next connection from Ansible must use that port (configure inventory or `ansible_ssh_port` / SSH config accordingly). A failure to connect on port 22 can mean the new port is in effect.
 
-Or we won't have any errors like the below image.
-![Screenshot from 2023-07-03 17-52-07](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/03e0c500-2a02-460c-a4b7-d200857ca954)
+## Verifying the run
 
-# Contributing
-We welcome contributions from the community to improve the Server Auto Config. To contribute:
+- **SSH port changed:** reconnect using the new port; “connection refused” on 22 alone may be expected.
+- **No errors:** playbook finishes green for all tasks.
+
+Screenshots (historical):
+
+![SSH port change / connection behavior](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/9a9ef4cc-5a39-4c47-9d58-a729da706942)
+
+![Successful run](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/03e0c500-2a02-460c-a4b7-d200857ca954)
+
+## Contributing
 
 1. Fork the repository.
+2. Create a branch: `git checkout -b feature-name`
+3. Commit and push: `git commit -m "Describe your change"` then `git push origin feature-name`
+4. Open a pull request.
 
-2. Create a new branch for your feature/fix:
-```
-git checkout -b feature-name
-```
-3. Commit your changes and push them to your forked repository:
-```
-git commit -m "Add a descriptive commit message"
-git push origin feature-name
-```
-4. Create a pull request. Your changes will be reviewed, and once approved, they will be merged into the main branch.
-
-Please ensure your code adheres to the project's coding standards.
-
+Please keep commits focused and avoid committing secrets or real inventory hostnames.

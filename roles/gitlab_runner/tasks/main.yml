@@ -4,22 +4,37 @@
 
 # 1.Install Gitlab Runner on server #
 
-- name: Add GitLab Runner GPG key
-  apt_key:
+- name: Ensure apt keyrings directory exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Download GitLab Runner archive key
+  get_url:
     url: https://packages.gitlab.com/gpg.key
-    state: present
+    dest: /etc/apt/keyrings/gitlab-runner.asc
+    mode: "0644"
+  become: true
+
+- name: Install GitLab Runner apt signing key
+  command: gpg --batch --dearmor -o /etc/apt/keyrings/gitlab-runner.gpg /etc/apt/keyrings/gitlab-runner.asc
+  args:
+    creates: /etc/apt/keyrings/gitlab-runner.gpg
   become: true
 
 - name: Add GitLab Runner repository
   apt_repository:
-    repo: deb https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_facts['distribution_release'] }} main
+    repo: "deb [signed-by=/etc/apt/keyrings/gitlab-runner.gpg] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_facts['distribution_release'] }} main"
     state: present
+    filename: gitlab-runner
   become: true
 
 - name: Update Ubuntu packages
   become: true
   apt:
-    update_cache: yes
+    update_cache: true
 
 - name: Install GitLab Runner
   block:
@@ -47,9 +62,13 @@
         shell: /bin/bash
       become: true
 
+    - name: Set GitLab Runner binary architecture suffix
+      set_fact:
+        gitlab_runner_bin_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'amd64' }}"
+
     - name: Download GitLab Runner binary fallback
       get_url:
-        url: https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+        url: "https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-{{ gitlab_runner_bin_arch }}"
         dest: /usr/local/bin/gitlab-runner
         mode: "0755"
       become: true
@@ -72,6 +91,11 @@
 
 # 2.Gitlab Runner registery #
 
+- name: Check for existing GitLab Runner configuration
+  stat:
+    path: /etc/gitlab-runner/config.toml
+  register: gitlab_runner_config
+
 - name: Register GitLab Runner
   command: gitlab-runner register \
     --non-interactive \
@@ -79,11 +103,15 @@
     --url "{{ gitlab_runner_url }}" \
     --executor "{{ gitlab_runner_executor }}"
   register: gitlab_runner_register_output
+  when: not gitlab_runner_config.stat.exists
   become: true
 
 - name: Display GitLab Runner registration output
   debug:
     var: gitlab_runner_register_output.stdout_lines
+  when:
+    - gitlab_runner_register_output is defined
+    - gitlab_runner_register_output is not skipped
 
 ##################################################################
 

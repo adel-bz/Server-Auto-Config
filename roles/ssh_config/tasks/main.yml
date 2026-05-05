@@ -28,15 +28,17 @@
   copy:
     src: sshd_config
     dest: /etc/ssh/sshd_config
-    remote_src: no
-  become: yes
+    remote_src: false
+  become: true
+  notify: Restart SSH service
 
 - name: Change SSH port in sshd_config
   lineinfile:
     path: /etc/ssh/sshd_config
     regexp: "^#?Port"
     line: "Port {{ ssh_port }}"
-    backup: yes
-  become: yes
+    backup: true
+  become: true
+  notify: Restart SSH service
 
 ##################################################################
