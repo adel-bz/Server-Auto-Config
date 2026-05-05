@@ -74,12 +74,6 @@ After a successful run, if you changed the SSH port, the next connection from An
 - **SSH port changed:** reconnect using the new port; “connection refused” on 22 alone may be expected.
 - **No errors:** playbook finishes green for all tasks.
 
-Screenshots (historical):
-
-![SSH port change / connection behavior](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/9a9ef4cc-5a39-4c47-9d58-a729da706942)
-
-![Successful run](https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/03e0c500-2a02-460c-a4b7-d200857ca954)
-
 ## Contributing
 
 1. Fork the repository.
