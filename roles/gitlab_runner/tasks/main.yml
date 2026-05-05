@@ -12,20 +12,61 @@
 
 - name: Add GitLab Runner repository
   apt_repository:
-    repo: deb https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_distribution_release }} main
+    repo: deb https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_facts['distribution_release'] }} main
     state: present
   become: true
 
 - name: Update Ubuntu packages
-  become: yes
+  become: true
   apt:
     update_cache: yes
 
 - name: Install GitLab Runner
-  apt:
-    name: gitlab-runner
-    state: latest
-  become: true
+  block:
+    - name: Install GitLab Runner package from APT repository
+      apt:
+        name: gitlab-runner
+        state: latest
+      become: true
+      register: gitlab_runner_apt_install
+      retries: 3
+      delay: 10
+      until: gitlab_runner_apt_install is succeeded
+  rescue:
+    - name: Ensure curl is installed for fallback setup
+      apt:
+        name: curl
+        state: present
+      become: true
+
+    - name: Ensure gitlab-runner system user exists for fallback
+      user:
+        name: gitlab-runner
+        system: true
+        create_home: true
+        shell: /bin/bash
+      become: true
+
+    - name: Download GitLab Runner binary fallback
+      get_url:
+        url: https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+        dest: /usr/local/bin/gitlab-runner
+        mode: "0755"
+      become: true
+
+    - name: Install GitLab Runner systemd service fallback
+      command: gitlab-runner install --user=gitlab-runner --working-directory=/home/gitlab-runner
+      args:
+        creates: /etc/systemd/system/gitlab-runner.service
+      become: true
+
+    - name: Enable and start GitLab Runner service fallback
+      systemd:
+        name: gitlab-runner
+        enabled: true
+        state: started
+        daemon_reload: true
+      become: true
 
 ##################################################################
 
@@ -49,7 +90,7 @@
 # 3.Gitlab Runner Permissions
 
 - name: Update visudo file
-  become: yes
+  become: true
   lineinfile:
     dest: /etc/sudoers
     insertafter: "@includedir /etc/sudoers.d"

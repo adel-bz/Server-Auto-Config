@@ -1,17 +1,19 @@
 ## All variables for our roles ##
 ---
 ########################################################
-ssh_port: "$port"
+ssh_port: "22"
 ########################################################
-user: "$user"
+user: "ubuntu"
 ########################################################
-password: "$password"
+# Replace before running (use Ansible Vault for real deployments).
+password: "CHANGE_ME"
 ########################################################
-ssh_public_key: "$your_ssh_key"
+# Paste your single-line OpenSSH public key for the managed user.
+ssh_public_key: "REPLACE_WITH_YOUR_SSH_PUBLIC_KEY"
 ########################################################
-gitlab_runner_registration_token: "$gitlab_runner_registration_token"
+gitlab_runner_registration_token: "REPLACE_WITH_GITLAB_RUNNER_TOKEN"
 ########################################################
-gitlab_runner_url: "$gitlab_url"
+gitlab_runner_url: "https://gitlab.example.com"
 ########################################################
 gitlab_runner_executor: "shell"
 ########################################################
