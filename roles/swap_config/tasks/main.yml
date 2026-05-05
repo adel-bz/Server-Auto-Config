@@ -9,39 +9,57 @@
   register: swap_status
   changed_when: false
 
+- name: Decide if this role should add /swapfile (no swap devices active yet)
+  set_fact:
+    swap_needs_role: "{{ (swap_status.stdout | default('', true) | trim) == '' }}"
+
+- name: Stat /swapfile
+  stat:
+    path: /swapfile
+  register: swap_file_stat
+  changed_when: false
+
 - name: Create swap file (fallocate, else dd)
   shell: |
     set -euo pipefail
     if fallocate -l 4G /swapfile 2>/dev/null; then exit 0; fi
     dd if=/dev/zero of=/swapfile bs=1M count=4096 status=none
-  args:
-    creates: /swapfile
-  when: swap_status.stdout == ""
-  register: create_swap_file
+  when:
+    - swap_needs_role | bool
+    - not swap_file_stat.stat.exists
   become: true
 
 - name: Set correct permissions for swap file
   file:
     path: /swapfile
     mode: '0600'
-  when: create_swap_file is changed
+  when: swap_needs_role | bool
   become: true
 
-- name: Make the file a swap space
-  command: mkswap /swapfile
-  when: create_swap_file is changed
+- name: Ensure Linux swap signature on /swapfile (skip if already a swap area)
+  shell: |
+    set -euo pipefail
+    if file -s /swapfile | grep -qi 'Linux swap'; then exit 0; fi
+    mkswap /swapfile
+  when: swap_needs_role | bool
   become: true
+  changed_when: false
 
-- name: Enable the swap file
-  command: swapon /swapfile
-  when: create_swap_file is changed
+- name: Activate /swapfile if not already active
+  shell: |
+    set -euo pipefail
+    if swapon --show | grep -q '/swapfile'; then exit 0; fi
+    swapon /swapfile
+  when: swap_needs_role | bool
   become: true
+  changed_when: false
 
 - name: Make swap file permanent in fstab
   lineinfile:
     dest: /etc/fstab
     line: "/swapfile none swap sw 0 0"
     state: present
+  when: swap_needs_role | bool
   become: true
 
 - name: Set swappiness and cache pressure

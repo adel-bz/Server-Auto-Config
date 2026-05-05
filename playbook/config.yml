@@ -16,6 +16,10 @@
   post_tasks:
     - name: Apply SSH and other pending handlers before later roles
       meta: flush_handlers
+    - name: Use configured SSH port for subsequent plays
+      set_fact:
+        ansible_port: "{{ ssh_port }}"
+      when: ssh_port is defined
 
 ########################################################
 
