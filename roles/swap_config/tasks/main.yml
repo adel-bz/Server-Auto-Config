@@ -17,13 +17,17 @@
   stat:
     path: /swapfile
   register: swap_file_stat
-  changed_when: false
 
-- name: Create swap file (fallocate, else dd)
+- name: Create swap file (fully allocated, no holes)
   shell: |
     set -euo pipefail
-    if fallocate -l 4G /swapfile 2>/dev/null; then exit 0; fi
+    if [ -f /swapfile ]; then echo SKIPPED; exit 0; fi
     dd if=/dev/zero of=/swapfile bs=1M count=4096 status=none
+    echo CREATED
+  args:
+    executable: /bin/bash
+  register: swap_create
+  changed_when: "'CREATED' in swap_create.stdout"
   when:
     - swap_needs_role | bool
     - not swap_file_stat.stat.exists
@@ -32,6 +36,8 @@
 - name: Set correct permissions for swap file
   file:
     path: /swapfile
+    owner: root
+    group: root
     mode: '0600'
   when: swap_needs_role | bool
   become: true
@@ -39,20 +45,29 @@
 - name: Ensure Linux swap signature on /swapfile (skip if already a swap area)
   shell: |
     set -euo pipefail
-    if file -s /swapfile | grep -qi 'Linux swap'; then exit 0; fi
+    if file -s /swapfile | grep -qi 'Linux swap'; then echo SKIPPED; exit 0; fi
     mkswap /swapfile
+  args:
+    executable: /bin/bash
+  register: mkswap_result
+  changed_when: "'Setting up swapspace' in mkswap_result.stdout"
   when: swap_needs_role | bool
   become: true
-  changed_when: false
 
 - name: Activate /swapfile if not already active
   shell: |
     set -euo pipefail
-    if swapon --show | grep -q '/swapfile'; then exit 0; fi
+    if swapon --show=NAME --noheadings | grep -qx '/swapfile'; then
+      echo ALREADY_ACTIVE; exit 0
+    fi
     swapon /swapfile
+    echo ACTIVATED
+  args:
+    executable: /bin/bash
+  register: swapon_result
+  changed_when: "'ACTIVATED' in swapon_result.stdout"
   when: swap_needs_role | bool
   become: true
-  changed_when: false
 
 - name: Make swap file permanent in fstab
   lineinfile:
@@ -73,4 +88,4 @@
     - { name: 'vm.vfs_cache_pressure', value: '50' }
   become: true
 
-##################################################################
+#######################################################

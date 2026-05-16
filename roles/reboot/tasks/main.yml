@@ -12,5 +12,6 @@
     pre_reboot_delay: 0
     post_reboot_delay: 5
   become: true
+  ignore_unreachable: true
 
 ##################################################################

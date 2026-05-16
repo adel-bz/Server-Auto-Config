@@ -30,7 +30,6 @@
     dest: /etc/ssh/sshd_config
     remote_src: false
   become: true
-  notify: Restart SSH service
 
 - name: Change SSH port in sshd_config
   lineinfile:
@@ -39,6 +38,5 @@
     line: "Port {{ ssh_port }}"
     backup: true
   become: true
-  notify: Restart SSH service
 
 ##################################################################
