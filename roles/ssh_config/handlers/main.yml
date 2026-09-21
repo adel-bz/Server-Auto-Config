@@ -1,0 +1,27 @@
+---
+- name: Reload systemd to regenerate SSH socket configuration
+  systemd_service:
+    daemon_reload: true
+  when: ssh_socket_active.rc == 0
+  listen: Restart SSH
+  become: true
+
+# Restart both units in one transaction so sshd releases its old listening socket.
+- name: Restart SSH socket and service
+  command:
+    argv:
+      - systemctl
+      - restart
+      - ssh.socket
+      - ssh.service
+  when: ssh_socket_active.rc == 0
+  listen: Restart SSH
+  become: true
+
+- name: Restart SSH service
+  service:
+    name: ssh
+    state: restarted
+  when: ssh_socket_active.rc != 0
+  listen: Restart SSH
+  become: true

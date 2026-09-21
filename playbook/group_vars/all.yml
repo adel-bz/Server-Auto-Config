@@ -1,19 +1,19 @@
-## All variables for our roles ##
 ---
-########################################################
-ssh_port: "22"
-########################################################
+# User account
 user: "ubuntu"
-########################################################
 # Replace before running (use Ansible Vault for real deployments).
 password: "CHANGE_ME"
-########################################################
+
+# SSH access
+ssh_port: "22"
 # Paste your single-line OpenSSH public key for the managed user.
 ssh_public_key: "REPLACE_WITH_YOUR_SSH_PUBLIC_KEY"
-########################################################
-gitlab_runner_registration_token: "REPLACE_WITH_GITLAB_RUNNER_TOKEN"
-########################################################
+
+# GitLab Runner
 gitlab_runner_url: "https://gitlab.example.com"
-########################################################
+gitlab_runner_registration_token: "REPLACE_WITH_GITLAB_RUNNER_TOKEN"
 gitlab_runner_executor: "shell"
-########################################################
+
+# Docker log rotation: maximum number of files and size per file.
+docker_log_max_file: 3
+docker_log_max_size: "10m"

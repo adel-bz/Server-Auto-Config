@@ -1,0 +1,54 @@
+name: Validate Ansible
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  ansible:
+    name: Syntax check and lint
+    runs-on: ubuntu-latest
+    env:
+      ANSIBLE_FORCE_COLOR: "1"
+      ANSIBLE_HOST_KEY_CHECKING: "false"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Ansible and ansible-lint
+        run: python -m pip install --upgrade pip ansible ansible-lint
+
+      - name: Install required Ansible collections, including ansible.posix
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Create dummy CI variables
+        run: |
+          cat > "$RUNNER_TEMP/ansible-ci-vars.yml" <<'EOF'
+          user: ci-ansible
+          password: ci-only-placeholder
+          ssh_port: "22"
+          ssh_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICiOnlyPlaceholder ci@example.invalid"
+          gitlab_runner_url: "https://gitlab.example.invalid"
+          gitlab_runner_registration_token: ci-only-placeholder
+          gitlab_runner_executor: shell
+          docker_log_max_file: 3
+          docker_log_max_size: "10m"
+          EOF
+
+      - name: Check playbook syntax
+        run: >-
+          ansible-playbook --syntax-check -i localhost, playbook/config.yml
+          -e @"$RUNNER_TEMP/ansible-ci-vars.yml"
+
+      - name: Lint playbook and roles
+        run: ansible-lint playbook/config.yml roles/
