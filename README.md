@@ -69,6 +69,18 @@ ansible-playbook -i inventory.cnf config.yml -kK
 
 After a successful run, if you changed the SSH port, the next connection from Ansible must use that port (configure inventory or `ansible_ssh_port` / SSH config accordingly). A failure to connect on port 22 can mean the new port is in effect.
 
+The SSH role validates configuration changes with `sshd -t`, allows the configured
+port through UFW when UFW is installed, and notifies a restart handler. On Ubuntu
+24.04 with `ssh.socket` active, the handler reloads systemd to regenerate the socket
+configuration and restarts both `ssh.socket` and `ssh.service`; otherwise it
+restarts the SSH service. The playbook then resets the SSH connection and verifies
+access on the configured port before starting the second play. Any external
+firewall must also allow that port.
+
+If an older run changed `sshd_config` without restarting SSH, rerun the updated
+playbook using the port the server still listens on for the initial connection.
+Keep your local inventory and variable values when updating the development branch.
+
 ## Variable reference
 
 All user-configurable variables are listed in **`playbook/group_vars/all.yml`**.

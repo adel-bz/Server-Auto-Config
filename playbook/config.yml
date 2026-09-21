@@ -20,6 +20,11 @@
       set_fact:
         ansible_port: "{{ ssh_port }}"
       when: ssh_port is defined
+    - name: Reset SSH connection after applying configuration
+      meta: reset_connection
+    - name: Verify SSH connection before subsequent plays
+      wait_for_connection:
+        timeout: 60
 
 ########################################################
 
