@@ -65,6 +65,42 @@
     state: present
   become: true
 
+- name: Ensure Docker configuration directory exists
+  file:
+    path: /etc/docker
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Check for existing Docker daemon configuration
+  stat:
+    path: /etc/docker/daemon.json
+  register: docker_daemon_config_stat
+  become: true
+
+- name: Read existing Docker daemon configuration
+  slurp:
+    src: /etc/docker/daemon.json
+  register: docker_daemon_config
+  when: docker_daemon_config_stat.stat.exists
+  become: true
+
+- name: Configure Docker log rotation
+  copy:
+    dest: /etc/docker/daemon.json
+    content: >-
+      {{ docker_daemon_config.content | default('e30=') | b64decode | from_json
+         | combine({'log-driver': 'json-file', 'log-opts': {
+             'max-file': docker_log_max_file | string,
+             'max-size': docker_log_max_size | string
+           }}, recursive=true) | to_nice_json }}
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "dockerd --validate --config-file=%s"
+  notify: Restart Docker
+  become: true
+
 - name: Run and enable docker
   service:
     name: docker

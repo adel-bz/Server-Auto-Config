@@ -1,0 +1,3 @@
+---
+docker_log_max_file: 3
+docker_log_max_size: "10m"
