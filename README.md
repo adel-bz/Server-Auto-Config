@@ -23,10 +23,6 @@ There are **nine roles**. The playbook runs them in **two stages** (see `playboo
 - Replace **`roles/ssh_config/files/sshd_config`** with your own file if you need different SSH policy; keep `Port` consistent with **`ssh_port`** in `playbook/group_vars/all.yml` (the role also forces the port line).
 - **Secrets:** use real values locally for `password`, `ssh_public_key`, and `gitlab_runner_registration_token`. Do not commit secrets; prefer [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html) or a private vars file for production.
 
-> The banner image in the introduction may still point at assets from the older repo name on GitHub; clone URL below matches **Server-Auto-Config**.
-
-https://github.com/adel-bz/Ansible-Server-Config/assets/45201934/46729180-8423-464c-b103-7bfbad9174b4
-
 ## Requirements
 
 - **Ansible** on your control machine ([installation options](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)).
@@ -134,11 +130,6 @@ configuration, and restarts Docker when it changes. As described in the
 [Docker logging documentation](https://docs.docker.com/engine/logging/drivers/json-file/),
 the new defaults apply to newly created containers; recreate existing containers
 to use them. Container-specific logging options can override these defaults.
-
-## Verifying the run
-
-- **SSH port changed:** reconnect using the new port; “connection refused” on 22 alone may be expected.
-- **No errors:** playbook finishes green for all tasks.
 
 ## Contributing
 
