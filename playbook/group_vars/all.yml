@@ -14,8 +14,9 @@ gitlab_runner_url: "https://gitlab.example.com"
 gitlab_runner_registration_token: "REPLACE_WITH_GITLAB_RUNNER_TOKEN"
 gitlab_runner_executor: "shell"
 
-# Firewall: every listed port is allowed for BOTH TCP and UDP.
-# Examples: [7600, 80, 443, 8080] or [7600]. SSH is always allowed separately over TCP.
+# Firewall: one combined allow rule per port covers BOTH TCP and UDP.
+# Examples: [7600, 80, 443, 8080] or [7600].
+# SSH is allowed automatically; you do NOT need to add ssh_port to this list.
 firewall_allowed_ports: [80, 443]
 
 # Docker group access bypasses sudo and is root-equivalent. Explicit opt-in only.

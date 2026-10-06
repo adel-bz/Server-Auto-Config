@@ -15,7 +15,7 @@ There are **nine roles**. The playbook runs them in **two stages** (see `playboo
 | 5 | **ssh_config** | Deploys `authorized_keys`, writes the SSH drop-in, and validates its syntax and configured policy. Does not restart SSH or test a new connection. Users must update SSH connection details (user, port, key) after activation/reboot. |
 | 6 | **swap_config** | 4G swap file (adjust size in the role tasks if needed); `fallocate` with `dd` fallback. |
 | 7 | **fail2ban** | Installs Fail2ban; SSH jail port matches **`ssh_port`** from `group_vars`. |
-| 8 | **firewall** | UFW: allow configurable service ports over both TCP and UDP, preserve SSH access over TCP, then enable UFW. |
+| 8 | **firewall** | UFW: one combined TCP/UDP allow rule per configured service port, automatic SSH access (no need to list `ssh_port`), then enable UFW. |
 | 9 | **reboot** | Flushes pending handlers, schedules a reboot one minute ahead, and finishes without reconnecting. Success means the request was accepted, not that reboot completion was verified. Update SSH connection details before connecting again. |
 
 ### Customization notes
@@ -202,10 +202,12 @@ before running the roles that use them.
 ### Firewall
 
 Set `firewall_allowed_ports` in **`playbook/group_vars/all.yml`** to the ports you
-want to allow. Each listed port is allowed for **both TCP and UDP**:
+want to allow. Each listed port is allowed for **both TCP and UDP** using one
+combined UFW rule, such as `ufw allow 80`, not separate `80/tcp` and `80/udp` rules:
 
 ```yaml
-# Every listed port is allowed for BOTH TCP and UDP.
+# One combined allow rule per port covers BOTH TCP and UDP.
+# SSH is allowed automatically; no need to add ssh_port here.
 firewall_allowed_ports: [7600, 80, 443, 8080]
 ```
 
@@ -216,10 +218,23 @@ firewall_allowed_ports: [7600]
 ```
 
 The default is `[80, 443]`. Use a list of port numbers from 1 to 65535; an empty
-list `[]` adds no service-port rules. The role always allows `ssh_port` over TCP
-separately to preserve SSH access, then enables UFW. These rules allow incoming
-traffic from any source. Existing UFW rules are preserved: removing a port from
-the variable does not delete an earlier allow rule. Close obsolete rules
+list `[]` adds no service-port rules. **SSH is allowed automatically: you do not
+need to add `ssh_port` to `firewall_allowed_ports`.** If it is not listed, the
+role allows it separately over TCP; if it is listed, the combined rule already
+covers SSH. The role enables UFW after adding these rules.
+
+For example, the service-port entries in `ufw status` look like:
+
+```text
+80                         ALLOW       Anywhere
+443                        ALLOW       Anywhere
+```
+
+IPv6 entries also appear when UFW IPv6 support is enabled. These rules allow
+incoming traffic from any source. For currently selected ports, the role adds
+the combined rule first, then removes equivalent unrestricted TCP/UDP allow
+rules left by earlier runs. Other rules are preserved: removing a port from
+the variable does not delete its earlier allow rules. Close obsolete rules
 explicitly when needed. Only list ports you actually need to expose.
 
 ### GitLab Runner

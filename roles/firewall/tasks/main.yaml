@@ -35,23 +35,35 @@
     state: present
   become: true
 
-# Every configured port is allowed for BOTH TCP and UDP, not just TCP.
-- name: Allow configured firewall ports over TCP and UDP
+# Omitting proto creates one allow rule per port, covering BOTH TCP and UDP.
+- name: Allow configured firewall ports with one combined rule per port
+  community.general.ufw:
+    rule: allow
+    port: "{{ item | string }}"
+  loop: "{{ firewall_allowed_ports | map('int') | unique | list }}"
+  become: true
+
+# Add the combined allow before removing equivalent older TCP/UDP allow rules.
+# Only unrestricted allow rules for currently selected ports are replaced.
+- name: Remove redundant split allow rules for configured firewall ports
   community.general.ufw:
     rule: allow
     port: "{{ item.0 | string }}"
     proto: "{{ item.1 }}"
+    delete: true
   loop: "{{ firewall_allowed_ports | map('int') | unique | product(['tcp', 'udp']) | list }}"
   loop_control:
     label: "{{ item.0 }}/{{ item.1 }}"
   become: true
 
-- name: Keep SSH allowed independently of the configured service ports
+# SSH is always allowed; users do NOT need to add ssh_port to the port list.
+- name: Keep SSH allowed when its port is not already in the service port list
   community.general.ufw:
     rule: allow
     port: "{{ ssh_port | string }}"
     proto: tcp
   become: true
+  when: (ssh_port | int) not in (firewall_allowed_ports | map('int') | list)
 
 - name: Enable UFW after allowing configured ports and SSH
   community.general.ufw:

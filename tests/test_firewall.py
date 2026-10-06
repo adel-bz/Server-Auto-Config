@@ -22,6 +22,7 @@ module = AnsibleModule(
         'rule': {'type': 'str', 'choices': ['allow']},
         'port': {'type': 'str'},
         'proto': {'type': 'str', 'choices': ['tcp', 'udp']},
+        'delete': {'type': 'bool', 'default': False},
         'state': {'type': 'str', 'choices': ['enabled']},
     },
     supports_check_mode=True,
@@ -38,7 +39,7 @@ class FirewallTests(unittest.TestCase):
             module.write_text(MOCK_UFW)
             tasks = yaml.safe_load((ROLE / 'tasks/main.yaml').read_text())
             selected = []
-            registers = ['configured_rules', 'ssh_rule', 'enable_firewall']
+            registers = ['configured_rules', 'split_cleanup', 'ssh_rule', 'enable_firewall']
             for task in tasks:
                 if 'ansible.builtin.apt' in task:
                     continue  # No package installs or become operations in tests.
@@ -52,7 +53,7 @@ class FirewallTests(unittest.TestCase):
                 'name': 'Record simulated UFW requests',
                 'ansible.builtin.copy': {
                     'dest': str(results), 'mode': '0600',
-                    'content': "{{ {'configured': configured_rules, 'ssh': ssh_rule, "
+                    'content': "{{ {'configured': configured_rules, 'cleanup': split_cleanup, 'ssh': ssh_rule, "
                                "'enable': enable_firewall} | to_json }}",
                 },
                 'check_mode': False,
@@ -84,30 +85,42 @@ class FirewallTests(unittest.TestCase):
         calls = data['configured'].get('results', [])
         observed = [(entry['observed']['port'], entry['observed']['proto']) for entry in calls]
         self.assertEqual(observed, expected)
-        self.assertEqual(data['ssh']['observed']['proto'], 'tcp')
-        self.assertEqual(data['ssh']['observed']['port'], str(options.get('ssh_port', 22)))
+        self.assertTrue(all(not entry['observed']['delete'] for entry in calls))
+        cleanup = data['cleanup'].get('results', [])
+        self.assertEqual([(entry['observed']['port'], entry['observed']['proto']) for entry in cleanup],
+                         [(port, proto) for port, _ in expected for proto in ['tcp', 'udp']])
+        self.assertTrue(all(entry['observed']['delete'] for entry in cleanup))
+        ssh_port = str(options.get('ssh_port', 22))
+        if ssh_port in [port for port, _ in expected]:
+            self.assertTrue(data['ssh']['skipped'])
+        else:
+            self.assertEqual(data['ssh']['observed']['proto'], 'tcp')
+            self.assertEqual(data['ssh']['observed']['port'], ssh_port)
         self.assertEqual(data['enable']['observed']['state'], 'enabled')
 
-    def test_multiple_ports_allow_both_protocols(self):
+    def test_multiple_ports_use_one_combined_allow_each(self):
         ports = [7600, 80, 443, 8080]
-        self.assert_rules(ports, [(str(port), proto) for port in ports for proto in ['tcp', 'udp']])
+        self.assert_rules(ports, [(str(port), None) for port in ports])
 
     def test_single_service_port_and_independent_ssh(self):
-        self.assert_rules([7600], [('7600', 'tcp'), ('7600', 'udp')], ssh_port=2222)
+        self.assert_rules([7600], [('7600', None)], ssh_port=2222)
+
+    def test_ssh_port_already_listed_does_not_add_a_redundant_tcp_rule(self):
+        self.assert_rules([7600, 2222], [('7600', None), ('2222', None)], ssh_port=2222)
 
     def test_empty_list_preserves_ssh_access(self):
         self.assert_rules([], [], ssh_port=2222)
 
-    def test_default_ports_allow_http_and_https_both_protocols(self):
-        self.assert_rules(None, [('80', 'tcp'), ('80', 'udp'), ('443', 'tcp'), ('443', 'udp')],
+    def test_default_ports_use_combined_http_and_https_rules(self):
+        self.assert_rules(None, [('80', None), ('443', None)],
                           use_defaults=True)
 
     def test_duplicate_numeric_and_string_ports_are_normalized(self):
         self.assert_rules([7600, '7600', '443'],
-                          [('7600', 'tcp'), ('7600', 'udp'), ('443', 'tcp'), ('443', 'udp')])
+                          [('7600', None), ('443', None)])
 
     def test_check_mode_supports_rule_planning(self):
-        self.assert_rules([7600], [('7600', 'tcp'), ('7600', 'udp')], check_mode=True)
+        self.assert_rules([7600], [('7600', None)], check_mode=True)
 
     def test_non_list_values_are_rejected_before_ufw(self):
         for ports in [7600, '7600, 80, 443', {'port': 7600}, None]:
