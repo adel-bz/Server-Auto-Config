@@ -2,6 +2,14 @@
 
 ---
 
+- name: Reject retained connection-specific SSH policy before making changes
+  script:
+    cmd: reject_match_rules.py /etc/ssh/sshd_config
+    executable: /usr/bin/python3
+  changed_when: false
+  check_mode: false
+  become: true
+
 # 1. Add SSH public key to server #
 
 - name: Add SSH public key to Ubuntu server (Create SSH directory for user)
@@ -117,6 +125,7 @@
   register: ssh_effective_config
   changed_when: false
   become: true
+  when: not ansible_check_mode
 
 - name: Verify SSH listens only on the configured port
   assert:
@@ -125,6 +134,7 @@
     fail_msg: >-
       Effective SSH configuration does not use only port {{ ssh_port }}.
       Check other snippets in /etc/ssh/sshd_config.d/ for Port directives.
+  when: not ansible_check_mode
 
 - name: Verify effective SSH authentication policy
   assert:
@@ -137,5 +147,6 @@
     fail_msg: >-
       Effective SSH authentication settings differ from the managed drop-in.
       Check earlier snippets and Match rules before restarting SSH.
+  when: not ansible_check_mode
 
 ##################################################################

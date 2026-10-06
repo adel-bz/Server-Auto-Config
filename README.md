@@ -111,7 +111,17 @@ Ubuntu's default file does. On hosts where an earlier version of this role
 replaced the main file, the role removes its old `Port` line once to avoid
 listening on both the old and new ports. It leaves other main-file settings in
 place; the managed drop-in is read first. An unrelated active `Port` directive
-in the main file must be migrated manually before running this role. On Ubuntu
+in the main file must be migrated manually before running this role. Before
+making SSH changes, the role also rejects any active `Match` block in the main
+file or recursively included files, including custom include paths. Ordinary
+absolute/relative paths, double-quoted paths, and globs are supported; ambiguous
+Include escaping or expansion syntax is rejected for manual review. This is a
+deliberate fail-closed restriction, even for otherwise harmless `Match` blocks:
+review and remove or migrate them manually rather than assuming the global
+`sshd -T` output proves the policy for every connection. This preflight runs in
+check mode too. Post-change effective-policy probes and assertions are skipped
+in check mode because proposed configuration changes have not been applied.
+On Ubuntu
 24.04 with `ssh.socket` active, the handler reloads systemd to regenerate the socket
 configuration and restarts both `ssh.socket` and `ssh.service`; otherwise it
 restarts the SSH service. The playbook then resets the SSH connection and verifies
