@@ -1,0 +1,21 @@
+# Managed by Ansible: roles/ssh_config. Edit the role or its variables instead.
+Port {{ ssh_port }}
+SyslogFacility AUTH
+LoginGraceTime 30s
+PermitRootLogin no
+StrictModes yes
+MaxAuthTries 5
+MaxSessions 2
+PubkeyAuthentication yes
+AuthenticationMethods publickey
+IgnoreRhosts yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+KbdInteractiveAuthentication no
+UsePAM yes
+X11Forwarding no
+PrintMotd no
+ClientAliveInterval 30
+ClientAliveCountMax 2
+UseDNS no
+MaxStartups 5

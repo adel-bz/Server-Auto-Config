@@ -12,7 +12,7 @@ There are **nine roles**. The playbook runs them in **two stages** (see `playboo
 | 2 | **manage_packages** | `apt` update/upgrade, then a script for unattended security updates and removal of a few legacy packages. |
 | 3 | **install_deps** | Nginx, Certbot, Docker CE, Docker Compose plugin, and related packages. |
 | 4 | **gitlab_runner** | Adds the GitLab Runner apt repo (keyring-based), installs Runner (with a binary fallback if apt fails), **registers once** if `/etc/gitlab-runner/config.toml` is missing, then sudo rules for `gitlab-runner` as in the role. |
-| 5 | **ssh_config** | Deploys `authorized_keys`, copies `sshd_config`, sets **SSH port** from `ssh_port` in `group_vars`, **restarts the SSH service** when config changes. |
+| 5 | **ssh_config** | Deploys `authorized_keys`, manages SSH policy and **SSH port** in `/etc/ssh/sshd_config.d/00-server-auto-config.conf`, and **restarts SSH** when config changes. |
 | 6 | **swap_config** | 4G swap file (adjust size in the role tasks if needed); `fallocate` with `dd` fallback. |
 | 7 | **fail2ban** | Installs Fail2ban; SSH jail port matches **`ssh_port`** from `group_vars`. |
 | 8 | **firewall** | UFW: allow HTTP/HTTPS and your SSH port, then `ufw --force enable`. |
@@ -20,7 +20,7 @@ There are **nine roles**. The playbook runs them in **two stages** (see `playboo
 
 ### Customization notes
 
-- Replace **`roles/ssh_config/files/sshd_config`** with your own file if you need different SSH policy; keep `Port` consistent with **`ssh_port`** in `playbook/group_vars/all.yml` (the role also forces the port line).
+- Edit **`roles/ssh_config/templates/00-server-auto-config.conf.j2`** for a different SSH policy. The `Port` directive comes from **`ssh_port`** in `playbook/group_vars/all.yml`. The old main-file content is retained as `roles/ssh_config/files/legacy_sshd_config` only to recognize installations managed by earlier versions.
 - **Secrets:** use real values locally for `password`, `ssh_public_key`, and `gitlab_runner_registration_token`. Do not commit secrets; prefer [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html) or a private vars file for production.
 
 ## Requirements
@@ -65,13 +65,26 @@ ansible-playbook -i inventory.cnf config.yml -kK
 
 After a successful run, if you changed the SSH port, the next connection from Ansible must use that port (configure inventory or `ansible_ssh_port` / SSH config accordingly). A failure to connect on port 22 can mean the new port is in effect.
 
-The SSH role validates configuration changes with `sshd -t`, allows the configured
-port through UFW when UFW is installed, and notifies a restart handler. On Ubuntu
+The SSH role installs a drop-in under `/etc/ssh/sshd_config.d/`, validates both
+the drop-in and combined configuration with `sshd -t`, checks the effective port
+and key-only authentication settings with `sshd -T`, allows that port through
+UFW when UFW is installed, and notifies a restart handler.
+The main `/etc/ssh/sshd_config` must include `/etc/ssh/sshd_config.d/*.conf`, as
+Ubuntu's default file does. On hosts where an earlier version of this role
+replaced the main file, the role removes its old `Port` line once to avoid
+listening on both the old and new ports. It leaves other main-file settings in
+place; the managed drop-in is read first. An unrelated active `Port` directive
+in the main file must be migrated manually before running this role. On Ubuntu
 24.04 with `ssh.socket` active, the handler reloads systemd to regenerate the socket
 configuration and restarts both `ssh.socket` and `ssh.service`; otherwise it
 restarts the SSH service. The playbook then resets the SSH connection and verifies
 access on the configured port before starting the second play. Any external
 firewall must also allow that port.
+
+Before the first run, confirm that the SSH account Ansible uses can log in with
+its private key. The managed SSH policy requires public-key authentication and
+disables password and keyboard-interactive login. A key in the managed user's
+`authorized_keys` does not by itself verify access for Ansible's initial SSH user.
 
 If an older run changed `sshd_config` without restarting SSH, rerun the updated
 playbook using the port the server still listens on for the initial connection.
@@ -94,7 +107,7 @@ before running the roles that use them.
 
 | Variable | Default / placeholder | Purpose |
 |----------|-----------------------|---------|
-| `ssh_port` | `"22"` | SSH listening port configured on the server. Also used by the Fail2ban SSH jail, the UFW SSH allow rule, and the connection settings for the second play. Use the server's current SSH port for the initial connection. |
+| `ssh_port` | `"22"` | SSH listening port written to the managed drop-in. Also used by the Fail2ban SSH jail, the UFW SSH allow rule, and the connection settings for the second play. Use the server's current SSH port for the initial connection. |
 | `ssh_public_key` | `"REPLACE_WITH_YOUR_SSH_PUBLIC_KEY"` | Single-line OpenSSH public key installed in the managed user's `authorized_keys` for SSH login. Supply a public key, never a private key. |
 
 ### GitLab Runner
