@@ -2,6 +2,14 @@
 
 ---
 
+- name: Reject retained connection-specific SSH policy before making changes
+  script:
+    cmd: reject_match_rules.py /etc/ssh/sshd_config
+    executable: /usr/bin/python3
+  changed_when: false
+  check_mode: false
+  become: true
+
 # 1. Add SSH public key to server #
 
 - name: Add SSH public key to Ubuntu server (Create SSH directory for user)
@@ -22,7 +30,7 @@
 
 ##################################################################
 
-# 2. Change SSH config file and port #
+# 2. Manage SSH policy in a drop-in and change the listening port #
 
 - name: Check whether SSH socket activation is active
   command: systemctl is-active ssh.socket
@@ -31,6 +39,35 @@
   failed_when: ssh_socket_active.rc not in [0, 3, 4]
   check_mode: false
   become: true
+
+- name: Read main SSH configuration for drop-in and legacy checks
+  slurp:
+    path: /etc/ssh/sshd_config
+  register: ssh_main_config
+  become: true
+
+- name: Require the main SSH configuration to include drop-ins
+  assert:
+    that:
+      - (ssh_main_config.content | b64decode) is search('(?m)^Include[ \t]+/etc/ssh/sshd_config[.]d/[*][.]conf[ \t]*$')
+    fail_msg: /etc/ssh/sshd_config must include /etc/ssh/sshd_config.d/*.conf before this role can manage a drop-in.
+
+- name: Identify the main configuration deployed by earlier role versions
+  set_fact:
+    ssh_legacy_main_managed: >-
+      {{
+        (ssh_main_config.content | b64decode
+        | regex_replace('(?m)^Port [0-9]+$', '#Port 22'))
+        == lookup('ansible.builtin.file', role_path ~ '/files/legacy_sshd_config', rstrip=False)
+      }}
+
+- name: Avoid adding a second port to an unmanaged main configuration
+  assert:
+    that:
+      - ssh_legacy_main_managed or not ((ssh_main_config.content | b64decode) is search('(?m)^[ \t]*Port[ \t]+'))
+    fail_msg: >-
+      /etc/ssh/sshd_config has an active Port directive that this role did not create.
+      Move it to a drop-in or remove it before running this role, so SSH does not listen on two ports.
 
 - name: Check whether UFW is installed
   stat:
@@ -46,24 +83,70 @@
     LC_ALL: C
   become: true
 
-- name: Copy config sshd_config file to server
-  copy:
-    src: sshd_config
-    dest: /etc/ssh/sshd_config
-    remote_src: false
+- name: Ensure SSH drop-in directory exists
+  file:
+    path: /etc/ssh/sshd_config.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Install managed SSH policy drop-in
+  template:
+    src: 00-server-auto-config.conf.j2
+    dest: /etc/ssh/sshd_config.d/00-server-auto-config.conf
+    owner: root
+    group: root
+    mode: "0644"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
   notify: Restart SSH
   become: true
 
-- name: Change SSH port in sshd_config
+- name: Remove the old port from the previously managed main configuration
   lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: "^#?Port"
-    line: "Port {{ ssh_port }}"
+    regexp: '^Port [0-9]+$'
+    state: absent
     backup: true
     validate: /usr/sbin/sshd -t -f %s
+  when: ssh_legacy_main_managed
   notify: Restart SSH
   become: true
+
+- name: Validate combined SSH configuration
+  command: /usr/sbin/sshd -t -f /etc/ssh/sshd_config
+  changed_when: false
+  become: true
+
+- name: Read effective SSH configuration
+  command: /usr/sbin/sshd -T -f /etc/ssh/sshd_config
+  register: ssh_effective_config
+  changed_when: false
+  become: true
+  when: not ansible_check_mode
+
+- name: Verify SSH listens only on the configured port
+  assert:
+    that:
+      - (ssh_effective_config.stdout_lines | select('match', '^port ') | list) == ['port ' ~ (ssh_port | string)]
+    fail_msg: >-
+      Effective SSH configuration does not use only port {{ ssh_port }}.
+      Check other snippets in /etc/ssh/sshd_config.d/ for Port directives.
+  when: not ansible_check_mode
+
+- name: Verify effective SSH authentication policy
+  assert:
+    that:
+      - "'permitrootlogin no' in ssh_effective_config.stdout_lines"
+      - "'pubkeyauthentication yes' in ssh_effective_config.stdout_lines"
+      - "'authenticationmethods publickey' in ssh_effective_config.stdout_lines"
+      - "'passwordauthentication no' in ssh_effective_config.stdout_lines"
+      - "'kbdinteractiveauthentication no' in ssh_effective_config.stdout_lines"
+    fail_msg: >-
+      Effective SSH authentication settings differ from the managed drop-in.
+      Check earlier snippets and Match rules before restarting SSH.
+  when: not ansible_check_mode
 
 ##################################################################

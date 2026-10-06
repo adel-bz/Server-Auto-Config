@@ -45,6 +45,15 @@ jobs:
           docker_log_max_size: "10m"
           EOF
 
+      - name: Install OpenSSH for policy regression tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes openssh-server
+          sudo install -d -m 0755 /run/sshd
+
+      - name: Run SSH policy regression tests
+        run: python -B -m unittest discover -s tests -v
+
       - name: Check playbook syntax
         run: >-
           ansible-playbook --syntax-check -i localhost, playbook/config.yml

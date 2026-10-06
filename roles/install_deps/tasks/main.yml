@@ -114,6 +114,42 @@
     groups: docker
     append: true
   become: true
+  when: docker_add_user_to_group | bool
+
+- name: Read Docker group membership
+  getent:
+    database: group
+    key: docker
+  become: true
+  when: not (docker_add_user_to_group | bool)
+
+- name: Remove existing passwordless Docker access for managed user
+  command:
+    argv: [gpasswd, --delete, "{{ user }}", docker]
+  when:
+    - not (docker_add_user_to_group | bool)
+    - user in ansible_facts.getent_group['docker'][2].split(',')
+  changed_when: true
+  become: true
+
+- name: Check managed user groups after Docker access removal
+  command:
+    argv: [id, -nG, "{{ user }}"]
+  register: managed_user_groups
+  changed_when: false
+  become: true
+  when:
+    - not (docker_add_user_to_group | bool)
+    - not ansible_check_mode
+
+- name: Reject Docker as the managed user's primary group
+  assert:
+    that:
+      - "'docker' not in managed_user_groups.stdout.split()"
+    fail_msg: Change the managed user's primary group away from docker before continuing.
+  when:
+    - not (docker_add_user_to_group | bool)
+    - not ansible_check_mode
 
 ##################################################################
 
