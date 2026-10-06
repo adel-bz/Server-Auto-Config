@@ -4,7 +4,7 @@ Ansible playbooks and roles to bootstrap Ubuntu servers: users, packages, Docker
 
 ## Roles
 
-There are **nine roles**. The playbook runs them in **two stages** (see `playbook/config.yml`): first through SSH configuration (with a handler flush so `sshd` restarts before the rest), then swap, Fail2ban, firewall, and reboot.
+There are **nine roles**. The playbook runs them in **two stages** (see `playbook/config.yml`): first through SSH configuration without restarting SSH, then swap, Fail2ban, firewall, and a scheduled final reboot. It keeps the existing SSH connection settings throughout and does not wait for the host to return after reboot.
 
 | Order | Role | What it does |
 |------:|------|----------------|
@@ -12,11 +12,11 @@ There are **nine roles**. The playbook runs them in **two stages** (see `playboo
 | 2 | **manage_packages** | `apt` update/upgrade, then a script for unattended security updates and removal of a few legacy packages. |
 | 3 | **install_deps** | Nginx, Certbot, Docker CE, Docker Compose plugin, and related packages. |
 | 4 | **gitlab_runner** | Adds the GitLab Runner apt repo (keyring-based), installs Runner (with a binary fallback if apt fails), **registers once** if `/etc/gitlab-runner/config.toml` is missing, denies Runner sudo access, and removes privileged group membership. |
-| 5 | **ssh_config** | Deploys `authorized_keys`, manages SSH policy and **SSH port** in `/etc/ssh/sshd_config.d/00-server-auto-config.conf`, and **restarts SSH** when config changes. |
+| 5 | **ssh_config** | Deploys `authorized_keys`, writes the SSH drop-in, and validates its syntax and configured policy. Does not restart SSH or test a new connection. Users must update SSH connection details (user, port, key) after activation/reboot. |
 | 6 | **swap_config** | 4G swap file (adjust size in the role tasks if needed); `fallocate` with `dd` fallback. |
 | 7 | **fail2ban** | Installs Fail2ban; SSH jail port matches **`ssh_port`** from `group_vars`. |
-| 8 | **firewall** | UFW: allow HTTP/HTTPS and your SSH port, then `ufw --force enable`. |
-| 9 | **reboot** | Reboots the host (waits for it to come back). |
+| 8 | **firewall** | UFW: allow configurable service ports over both TCP and UDP, preserve SSH access over TCP, then enable UFW. |
+| 9 | **reboot** | Flushes pending handlers, schedules a reboot one minute ahead, and finishes without reconnecting. Success means the request was accepted, not that reboot completion was verified. Update SSH connection details before connecting again. |
 
 ### Customization notes
 
@@ -27,6 +27,12 @@ There are **nine roles**. The playbook runs them in **two stages** (see `playboo
 
 - **Ansible** on your control machine ([installation options](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)).
 - **Target OS:** Ubuntu (roles use `apt` and Ubuntu-style service names, e.g. SSH service as `ssh`).
+
+Install the required collections before running the playbook:
+
+```bash
+ansible-galaxy collection install -r requirements.yml
+```
 
 ## Usage
 
@@ -45,9 +51,20 @@ Edit **`playbook/group_vars/all.yml`** using the [variable reference](#variable-
 
 Edit **`playbook/inventory.cnf`** and list your hosts under `[servers]`. You can use hostnames that match **`~/.ssh/config`**, or see [Ansible inventory docs](https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html).
 
-### 4. Optional: trim roles
+### 4. Optional: enable or disable roles
 
-Edit **`playbook/config.yml`** and comment out any role you do not need.
+To disable a role, just comment out its `- role:` line in
+**`playbook/config.yml`** by adding `#`. Remove `#` to enable it again.
+
+For example, this skips GitLab Runner:
+
+```yaml
+  roles:
+    - role: ../roles/user_config
+#    - role: ../roles/gitlab_runner
+```
+
+This skips the role on future runs; it does not undo changes from earlier runs.
 
 ### 5. Run the playbook
 
@@ -94,18 +111,37 @@ Before applying to an existing server:
   Confirm that the managed user needs a password after clearing its sudo cache
   with `sudo -k`, and that Runner cannot execute sudo commands.
 - Group removal affects new sessions, not credentials held by existing
-  processes. The full playbook's final reboot applies the group changes to all
-  sessions; if that role is skipped, restart Runner and reconnect user sessions
+  processes. Once the scheduled final reboot completes, group changes apply to
+  all sessions; if that role is skipped, restart Runner and reconnect user sessions
   before considering the migration complete.
 
 ### SSH transition
 
-After a successful run, if you changed the SSH port, the next connection from Ansible must use that port (configure inventory or `ansible_ssh_port` / SSH config accordingly). A failure to connect on port 22 can mean the new port is in effect.
+If you use the SSH role, you must review and update your SSH connection details
+before connecting again after activation/reboot: the login user, configured SSH
+port, and matching private key. Update Ansible inventory (`ansible_user`,
+`ansible_port`, `ansible_ssh_private_key_file`) or your local `~/.ssh/config`
+(`User`, `Port`, `IdentityFile`) as appropriate. The `user` variable does not
+automatically change Ansible's login account.
+
+For example, if the intended login account is `ubuntu` and `ssh_port` is `7600`,
+your inventory for the next run could contain:
+
+```ini
+server.example ansible_user=ubuntu ansible_port=7600 ansible_ssh_private_key_file=/path/to/private-key
+```
+
+Use your actual account, host, port and key path. Do not change the connection
+port for the current run before the new configuration is activated.
 
 The SSH role installs a drop-in under `/etc/ssh/sshd_config.d/`, validates both
 the drop-in and combined configuration with `sshd -t`, checks the effective port
-and key-only authentication settings with `sshd -T`, allows that port through
-UFW when UFW is installed, and notifies a restart handler.
+and key-only authentication settings on disk with `sshd -T`. It does not restart
+`ssh.service` or `ssh.socket`, reset the connection, test SSH connectivity, or
+change Ansible's connection user/port during the run. The firewall role allows
+the configured SSH port over TCP before the final reboot. If you skip that role,
+allow the port yourself; any external firewall must also allow it.
+
 The main `/etc/ssh/sshd_config` must include `/etc/ssh/sshd_config.d/*.conf`, as
 Ubuntu's default file does. On hosts where an earlier version of this role
 replaced the main file, the role removes its old `Port` line once to avoid
@@ -121,12 +157,18 @@ review and remove or migrate them manually rather than assuming the global
 `sshd -T` output proves the policy for every connection. This preflight runs in
 check mode too. Post-change effective-policy probes and assertions are skipped
 in check mode because proposed configuration changes have not been applied.
-On Ubuntu
-24.04 with `ssh.socket` active, the handler reloads systemd to regenerate the socket
-configuration and restarts both `ssh.socket` and `ssh.service`; otherwise it
-restarts the SSH service. The playbook then resets the SSH connection and verifies
-access on the configured port before starting the second play. Any external
-firewall must also allow that port.
+
+The running SSH daemon continues using its previous daemon settings until the
+final reboot activates the validated configuration. If you skip the reboot
+role, activation is your responsibility. Authorized-key file changes can affect
+new logins immediately, so keep an existing administrative session or console
+available and ensure the intended account has the correct public key.
+
+The reboot role schedules `/sbin/shutdown -r +1` after flushing pending handlers.
+It reports success when the scheduling command returns successfully, then ends
+without polling, reconnecting, or confirming boot completion. A scheduling
+failure still fails the playbook; check mode does not schedule a reboot. Wait
+for the host to boot and reconnect manually using the updated SSH details.
 
 Before the first run, confirm that the SSH account Ansible uses can log in with
 its private key. The managed SSH policy requires public-key authentication and
@@ -154,8 +196,31 @@ before running the roles that use them.
 
 | Variable | Default / placeholder | Purpose |
 |----------|-----------------------|---------|
-| `ssh_port` | `"22"` | SSH listening port written to the managed drop-in. Also used by the Fail2ban SSH jail, the UFW SSH allow rule, and the connection settings for the second play. Use the server's current SSH port for the initial connection. |
+| `ssh_port` | `"22"` | SSH listening port written to the managed drop-in, activated after reboot. Also used by the Fail2ban SSH jail and firewall SSH allow rule. Use the current port for this run; manually update connection details to this port after activation. |
 | `ssh_public_key` | `"REPLACE_WITH_YOUR_SSH_PUBLIC_KEY"` | Single-line OpenSSH public key installed in the managed user's `authorized_keys` for SSH login. Supply a public key, never a private key. |
+
+### Firewall
+
+Set `firewall_allowed_ports` in **`playbook/group_vars/all.yml`** to the ports you
+want to allow. Each listed port is allowed for **both TCP and UDP**:
+
+```yaml
+# Every listed port is allowed for BOTH TCP and UDP.
+firewall_allowed_ports: [7600, 80, 443, 8080]
+```
+
+For just one service port:
+
+```yaml
+firewall_allowed_ports: [7600]
+```
+
+The default is `[80, 443]`. Use a list of port numbers from 1 to 65535; an empty
+list `[]` adds no service-port rules. The role always allows `ssh_port` over TCP
+separately to preserve SSH access, then enables UFW. These rules allow incoming
+traffic from any source. Existing UFW rules are preserved: removing a port from
+the variable does not delete an earlier allow rule. Close obsolete rules
+explicitly when needed. Only list ports you actually need to expose.
 
 ### GitLab Runner
 

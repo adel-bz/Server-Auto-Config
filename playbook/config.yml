@@ -2,6 +2,10 @@
 
 ---
 
+# To disable a role, just comment out its '- role:' line by adding #.
+# Remove # to enable it again. Example: #    - role: ../roles/gitlab_runner
+# Skipping a role does not undo changes made by earlier runs.
+
 ########################################################
 
 # Play 1 — apply/validate SSH without restarting it or changing this connection.
