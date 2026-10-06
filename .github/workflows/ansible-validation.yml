@@ -51,7 +51,7 @@ jobs:
           sudo apt-get install --yes openssh-server
           sudo install -d -m 0755 /run/sshd
 
-      - name: Run SSH policy regression tests
+      - name: Run role regression tests
         run: python -B -m unittest discover -s tests -v
 
       - name: Check playbook syntax

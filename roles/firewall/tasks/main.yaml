@@ -2,22 +2,60 @@
 
 ---
 
-# 1. Open all important ports on UFW #
+# 1. Validate user-selected ports before changing UFW #
 
-- name: Open HTTP port
-  command: ufw allow 80/tcp
+- name: Require a list of firewall ports
+  ansible.builtin.assert:
+    that:
+      - firewall_allowed_ports is sequence
+      - firewall_allowed_ports is not string
+      - firewall_allowed_ports is not mapping
+    fail_msg: 'Set firewall_allowed_ports to a list, for example [7600, 80, 443, 8080] or [7600].'
+
+- name: Validate each configured firewall port
+  ansible.builtin.assert:
+    that:
+      - (item | string) is match('^[0-9]+$')
+      - item | int >= 1
+      - item | int <= 65535
+    fail_msg: 'Each firewall_allowed_ports entry must be a port number between 1 and 65535.'
+  loop: "{{ firewall_allowed_ports }}"
+
+- name: Validate the SSH firewall port
+  ansible.builtin.assert:
+    that:
+      - (ssh_port | string) is match('^[0-9]+$')
+      - ssh_port | int >= 1
+      - ssh_port | int <= 65535
+    fail_msg: 'ssh_port must be a port number between 1 and 65535.'
+
+- name: Ensure UFW is installed
+  ansible.builtin.apt:
+    name: ufw
+    state: present
   become: true
 
-- name: Open HTTPS port
-  command: ufw allow 443/tcp
+# Every configured port is allowed for BOTH TCP and UDP, not just TCP.
+- name: Allow configured firewall ports over TCP and UDP
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.0 | string }}"
+    proto: "{{ item.1 }}"
+  loop: "{{ firewall_allowed_ports | map('int') | unique | product(['tcp', 'udp']) | list }}"
+  loop_control:
+    label: "{{ item.0 }}/{{ item.1 }}"
   become: true
 
-- name: Open SSH port
-  command: ufw allow "{{ ssh_port }}/tcp"
+- name: Keep SSH allowed independently of the configured service ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port | string }}"
+    proto: tcp
   become: true
 
-- name: Enable UFW with default deny (incoming)
-  command: ufw --force enable
+- name: Enable UFW after allowing configured ports and SSH
+  community.general.ufw:
+    state: enabled
   become: true
 
 ##################################################################

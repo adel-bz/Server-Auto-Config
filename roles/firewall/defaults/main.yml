@@ -1,0 +1,3 @@
+---
+# Every listed port is allowed for BOTH TCP and UDP.
+firewall_allowed_ports: [80, 443]
