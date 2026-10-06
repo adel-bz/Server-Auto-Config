@@ -117,13 +117,80 @@
 
 # 3.Gitlab Runner Permissions
 
-- name: Update visudo file
+- name: Read sudoers include configuration for GitLab Runner
+  slurp:
+    src: /etc/sudoers
+  register: runner_sudoers
+  become: true
+
+- name: Require the GitLab Runner sudoers drop-in to be included
+  assert:
+    that:
+      - (runner_sudoers.content | b64decode) is search('(?m)^[ \t]*[@#]includedir[ \t]+/etc/sudoers[.]d[ \t]*(?:#.*)?$')
+    fail_msg: Enable the /etc/sudoers.d include in sudoers before applying this role.
+
+- name: Ensure sudoers drop-in directory exists
+  file:
+    path: /etc/sudoers.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Deny sudo commands for GitLab Runner
+  copy:
+    dest: /etc/sudoers.d/99-server-auto-config-runner
+    content: |
+      # Managed by Server-Auto-Config. CI jobs must not escalate through sudo.
+      gitlab-runner ALL=(ALL:ALL) !ALL
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "visudo -cf %s"
+  become: true
+
+- name: Remove legacy passwordless GitLab Runner grant
   become: true
   lineinfile:
     dest: /etc/sudoers
-    insertafter: "@includedir /etc/sudoers.d"
     line: "gitlab-runner ALL=(ALL) NOPASSWD: ALL"
-    state: present
+    state: absent
+    backup: true
     validate: "visudo -cf %s"
+
+- name: Read local groups for GitLab Runner privilege removal
+  getent:
+    database: group
+  become: true
+
+- name: Remove GitLab Runner from privileged supplementary groups
+  command:
+    argv: [gpasswd, --delete, gitlab-runner, "{{ item }}"]
+  loop: [sudo, admin, docker]
+  when:
+    - item in ansible_facts.getent_group
+    - "'gitlab-runner' in ansible_facts.getent_group[item][2].split(',')"
+  changed_when: true
+  become: true
+
+- name: Check GitLab Runner groups after privilege removal
+  command: id -nG gitlab-runner
+  register: gitlab_runner_groups
+  changed_when: false
+  become: true
+  when: not ansible_check_mode
+
+- name: Reject privileged primary groups for GitLab Runner
+  assert:
+    that:
+      - gitlab_runner_groups.stdout.split() | intersect(['sudo', 'admin', 'docker']) | length == 0
+    fail_msg: Change GitLab Runner's primary group away from sudo, admin, or docker before continuing.
+  when: not ansible_check_mode
+
+- name: Validate combined sudoers configuration
+  command: visudo -c
+  changed_when: false
+  become: true
 
 ##################################################################

@@ -8,10 +8,10 @@ There are **nine roles**. The playbook runs them in **two stages** (see `playboo
 
 | Order | Role | What it does |
 |------:|------|----------------|
-| 1 | **user_config** | Creates the managed user, adds sudo access (passwordless sudo as configured in the role). |
+| 1 | **user_config** | Creates the managed user and grants password-required sudo through a validated sudoers drop-in. |
 | 2 | **manage_packages** | `apt` update/upgrade, then a script for unattended security updates and removal of a few legacy packages. |
 | 3 | **install_deps** | Nginx, Certbot, Docker CE, Docker Compose plugin, and related packages. |
-| 4 | **gitlab_runner** | Adds the GitLab Runner apt repo (keyring-based), installs Runner (with a binary fallback if apt fails), **registers once** if `/etc/gitlab-runner/config.toml` is missing, then sudo rules for `gitlab-runner` as in the role. |
+| 4 | **gitlab_runner** | Adds the GitLab Runner apt repo (keyring-based), installs Runner (with a binary fallback if apt fails), **registers once** if `/etc/gitlab-runner/config.toml` is missing, denies Runner sudo access, and removes privileged group membership. |
 | 5 | **ssh_config** | Deploys `authorized_keys`, manages SSH policy and **SSH port** in `/etc/ssh/sshd_config.d/00-server-auto-config.conf`, and **restarts SSH** when config changes. |
 | 6 | **swap_config** | 4G swap file (adjust size in the role tasks if needed); `fallocate` with `dd` fallback. |
 | 7 | **fail2ban** | Installs Fail2ban; SSH jail port matches **`ssh_port`** from `group_vars`. |
@@ -54,14 +54,51 @@ Edit **`playbook/config.yml`** and comment out any role you do not need.
 From the **`playbook/`** directory:
 
 ```bash
-ansible-playbook -i inventory.cnf config.yml
+ansible-playbook -i inventory.cnf config.yml -K
 ```
 
-If SSH or sudo needs a password interactively:
+`-K` prompts for the sudo password of the account Ansible connects as, which may
+be different from the managed `user`. For unattended runs, supply
+`ansible_become_password` through Ansible Vault. Do not put passwords on the
+command line. SSH login remains key-only; the account password is used for sudo,
+not SSH authentication.
 
-```bash
-ansible-playbook -i inventory.cnf config.yml -kK
-```
+### Sudo hardening and migration
+
+The managed user retains full administrative sudo access, but must authenticate
+with a password (normal sudo credential caching still applies). The role refuses
+an empty or placeholder `password`, installs
+`/etc/sudoers.d/99-server-auto-config-admin` as root-owned mode `0440`, and removes
+the exact passwordless grant that older versions placed in `/etc/sudoers`.
+Both the drop-in and combined sudoers configuration are checked with `visudo`.
+
+GitLab Runner receives a sudo-deny drop-in and its legacy passwordless grant is
+removed. It is also removed from the supplementary `sudo`, `admin`, and `docker`
+groups, without replacing unrelated group memberships. A privileged primary
+group causes the playbook to fail for manual correction. CI jobs that previously
+used sudo or the host Docker socket will need an unprivileged workflow; this
+change does not add deployment wrappers or configure rootless Docker.
+
+Before applying to an existing server:
+
+- Set a strong, private account password and confirm that the Ansible login
+  account can still become root. Pass `-K` even if sudo is currently passwordless:
+  later tasks may need the password once the old grant is removed. If Ansible
+  changes its own login account's password, the become password must match the
+  new value.
+- Keep a separate tested administrative session or console available. Apply
+  during a maintenance window after draining CI jobs.
+- Review other sudo policies with `sudo -l -U <managed-user>` and
+  `sudo -l -U gitlab-runner`. Sudo uses the last matching rule, so later external
+  rules can override these drop-ins. The role does not delete unrelated policies.
+  Confirm that the managed user needs a password after clearing its sudo cache
+  with `sudo -k`, and that Runner cannot execute sudo commands.
+- Group removal affects new sessions, not credentials held by existing
+  processes. The full playbook's final reboot applies the group changes to all
+  sessions; if that role is skipped, restart Runner and reconnect user sessions
+  before considering the migration complete.
+
+### SSH transition
 
 After a successful run, if you changed the SSH port, the next connection from Ansible must use that port (configure inventory or `ansible_ssh_port` / SSH config accordingly). A failure to connect on port 22 can mean the new port is in effect.
 
@@ -100,8 +137,8 @@ before running the roles that use them.
 
 | Variable | Default / placeholder | Purpose |
 |----------|-----------------------|---------|
-| `user` | `"ubuntu"` | Linux account to create or manage. The roles give it a Bash shell, sudo group membership, passwordless sudo, Docker group membership, and the configured SSH public key. This does not set Ansible's initial SSH login user; configure that in inventory or SSH config. |
-| `password` | `"CHANGE_ME"` | Password for the managed Linux account. Supply the password itself; the role hashes it with SHA-512 before setting it. Store the value with Ansible Vault or in a private vars file. |
+| `user` | `"ubuntu"` | Linux account to create or manage (not `root` or `gitlab-runner`). Receives a Bash shell, sudo group membership, password-required sudo, and the configured SSH public key. Docker group membership is opt-in. This does not set Ansible's initial SSH login user; configure that in inventory or SSH config. |
+| `password` | `"CHANGE_ME"` | Required non-placeholder password for the managed Linux account's sudo authentication. Supply the password itself; the role hashes it with SHA-512 before setting it. Store the value with Ansible Vault or in a private vars file. |
 
 ### SSH access
 
@@ -121,12 +158,17 @@ before running the roles that use them.
 Runner registration is skipped when `/etc/gitlab-runner/config.toml` already
 exists, so changing the runner variables does not update an existing registration.
 
-### Docker log rotation
+### Docker access and log rotation
 
 | Variable | Default / placeholder | Purpose |
 |----------|-----------------------|---------|
+| `docker_add_user_to_group` | `false` | Whether the managed user gets Docker group access. By default, the role removes existing supplementary Docker membership. Set to `true` only if you accept root-equivalent access without a sudo password. Does not grant Docker access to GitLab Runner. |
 | `docker_log_max_file` | `3` | Maximum number of log files retained per container by Docker's default `json-file` logging configuration. Use a positive integer; older files are removed as rotation exceeds this limit. |
 | `docker_log_max_size` | `"10m"` | Maximum size of each Docker log file before rotation. Use a positive integer followed by `k`, `m`, or `g`, for example `"10m"` for 10 MB or `"1g"` for 1 GB. |
+
+The [Docker group grants root-level privileges](https://docs.docker.com/engine/install/linux-postinstall/).
+With the default opt-out, use password-authenticated sudo for Docker management.
+Setting `docker_add_user_to_group: true` deliberately bypasses that boundary.
 
 Docker uses the `json-file` logging driver with log rotation enabled by default.
 Change these variables in **`playbook/group_vars/all.yml`** to adjust the limits:

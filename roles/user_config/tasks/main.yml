@@ -2,7 +2,35 @@
 
 ---
 
-# 1. Create a new user and give sudo privilefes to user #
+# 1. Create a managed administrator with password-required sudo #
+
+- name: Validate managed administrator name
+  assert:
+    that:
+      - user is match('^[a-z_][a-z0-9_-]*[$]?$')
+      - user not in ['root', 'gitlab-runner']
+    fail_msg: Use a regular Linux account name other than root or gitlab-runner.
+
+- name: Require a real administrator password
+  assert:
+    that:
+      - password is string
+      - password | length > 0
+      - password != 'CHANGE_ME'
+    fail_msg: Supply a real administrator password using Ansible Vault or private variables.
+  no_log: true
+
+- name: Read sudoers include configuration
+  slurp:
+    src: /etc/sudoers
+  register: managed_sudoers
+  become: true
+
+- name: Require the sudoers drop-in directory to be included
+  assert:
+    that:
+      - (managed_sudoers.content | b64decode) is search('(?m)^[ \t]*[@#]includedir[ \t]+/etc/sudoers[.]d[ \t]*(?:#.*)?$')
+    fail_msg: Enable the /etc/sudoers.d include in sudoers before applying this role.
 
 - name: Create a new user
   become: true
@@ -13,14 +41,39 @@
     groups: sudo
     append: true
     state: present
+  no_log: true
 
-- name: Update visudo file
+- name: Ensure sudoers drop-in directory exists
+  file:
+    path: /etc/sudoers.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Require a password for managed administrator sudo
+  template:
+    src: 99-server-auto-config-admin.j2
+    dest: /etc/sudoers.d/99-server-auto-config-admin
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "visudo -cf %s"
+  become: true
+
+- name: Remove legacy passwordless administrator grant
   become: true
   lineinfile:
     dest: /etc/sudoers
-    insertafter: "@includedir /etc/sudoers.d"
     line: "{{ user }} ALL=(ALL) NOPASSWD: ALL"
-    state: present
+    state: absent
+    backup: true
     validate: "visudo -cf %s"
+
+- name: Validate combined sudoers configuration
+  command: visudo -c
+  changed_when: false
+  become: true
 
 ##################################################################
