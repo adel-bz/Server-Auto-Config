@@ -1,4 +1,6 @@
-## SSH config role tasks ## 
+## Apply and validate SSH configuration only; do not restart or reconnect. ##
+# After activation/reboot, the user must update SSH connection details
+# (login user, port and private key) in inventory or local SSH configuration.
 
 ---
 
@@ -32,14 +34,6 @@
 
 # 2. Manage SSH policy in a drop-in and change the listening port #
 
-- name: Check whether SSH socket activation is active
-  command: systemctl is-active ssh.socket
-  register: ssh_socket_active
-  changed_when: false
-  failed_when: ssh_socket_active.rc not in [0, 3, 4]
-  check_mode: false
-  become: true
-
 - name: Read main SSH configuration for drop-in and legacy checks
   slurp:
     path: /etc/ssh/sshd_config
@@ -69,20 +63,6 @@
       /etc/ssh/sshd_config has an active Port directive that this role did not create.
       Move it to a drop-in or remove it before running this role, so SSH does not listen on two ports.
 
-- name: Check whether UFW is installed
-  stat:
-    path: /usr/sbin/ufw
-  register: ssh_ufw_binary
-
-- name: Allow configured SSH port before restarting SSH
-  command: /usr/sbin/ufw allow {{ ssh_port }}/tcp
-  register: ssh_ufw_allow
-  changed_when: "'Rule added' in ssh_ufw_allow.stdout or 'Rules updated' in ssh_ufw_allow.stdout"
-  when: ssh_ufw_binary.stat.exists
-  environment:
-    LC_ALL: C
-  become: true
-
 - name: Ensure SSH drop-in directory exists
   file:
     path: /etc/ssh/sshd_config.d
@@ -101,7 +81,6 @@
     mode: "0644"
     validate: /usr/sbin/sshd -t -f %s
     backup: true
-  notify: Restart SSH
   become: true
 
 - name: Remove the old port from the previously managed main configuration
@@ -112,7 +91,6 @@
     backup: true
     validate: /usr/sbin/sshd -t -f %s
   when: ssh_legacy_main_managed
-  notify: Restart SSH
   become: true
 
 - name: Validate combined SSH configuration
@@ -120,14 +98,14 @@
   changed_when: false
   become: true
 
-- name: Read effective SSH configuration
+- name: Read configured SSH policy without restarting SSH
   command: /usr/sbin/sshd -T -f /etc/ssh/sshd_config
   register: ssh_effective_config
   changed_when: false
   become: true
   when: not ansible_check_mode
 
-- name: Verify SSH listens only on the configured port
+- name: Verify the SSH configuration specifies only the requested port
   assert:
     that:
       - (ssh_effective_config.stdout_lines | select('match', '^port ') | list) == ['port ' ~ (ssh_port | string)]
@@ -146,7 +124,7 @@
       - "'kbdinteractiveauthentication no' in ssh_effective_config.stdout_lines"
     fail_msg: >-
       Effective SSH authentication settings differ from the managed drop-in.
-      Check earlier snippets and Match rules before restarting SSH.
+      Check earlier snippets and Match rules before activating the configuration.
   when: not ansible_check_mode
 
 ##################################################################
