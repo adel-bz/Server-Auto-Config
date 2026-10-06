@@ -1,17 +1,24 @@
-# Reboot servers after config #
+# Schedule the final reboot after configuration; never wait for reconnection.
+# Success means the reboot request was accepted, not that booting completed.
+# If ssh_config ran, update the SSH user/port/key before the next connection.
 
 ---
 
-# 1. Restart servers #
+# Flush handlers while the existing SSH connection is still available.
 
-- name: Reboot hosts and wait for it to restart
-  reboot:
-    msg: "Reboot initiated by Ansible"
-    connect_timeout: 5
-    reboot_timeout: 60
-    pre_reboot_delay: 0
-    post_reboot_delay: 5
+- name: Apply pending handlers before scheduling the final reboot
+  ansible.builtin.meta: flush_handlers
+
+# A one-minute delay lets the command return successfully before SSH goes down.
+- name: Schedule the final reboot without waiting for the server to return
+  ansible.builtin.command:
+    argv:
+      - /sbin/shutdown
+      - -r
+      - '+1'
+      - Reboot initiated by Ansible
+  changed_when: true
   become: true
-  ignore_unreachable: true
+  when: not ansible_check_mode
 
 ##################################################################

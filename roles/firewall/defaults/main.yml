@@ -1,0 +1,4 @@
+---
+# One combined allow rule per listed port covers BOTH TCP and UDP.
+# SSH is allowed automatically; do not add ssh_port to this list just for SSH.
+firewall_allowed_ports: [80, 443]
