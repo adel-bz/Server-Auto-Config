@@ -45,7 +45,24 @@ cd Server-Auto-Config
 
 ### 2. Configure variables
 
-Edit **`playbook/group_vars/all.yml`** using the [variable reference](#variable-reference) below. Variables in `playbook/group_vars/` are loaded automatically when you run the playbook from the `playbook/` directory.
+Review **`playbook/group_vars/all.yml`** using the [variable reference](#variable-reference)
+below. Keep passwords and tokens out of tracked files. Variables in
+`playbook/group_vars/` are loaded automatically when you run the playbook from
+the `playbook/` directory.
+
+For a new clone, create an ignored, private variables file from the repository root:
+
+```bash
+mkdir -p -m 700 .private
+cp -n playbook/group_vars/all.yml .private/server-vars.yml
+chmod 600 .private/server-vars.yml
+```
+
+Edit **`.private/server-vars.yml`** with your real values and pass it using
+`-e @../.private/server-vars.yml` as shown below. The `.private/` directory is
+ignored by Git; never force-add it. Prefer Ansible Vault when secrets need
+encryption, and keep the Vault password outside the repository. Deleting a
+committed secret does not remove it from history: rotate exposed credentials.
 
 ### 3. Configure inventory
 
@@ -71,7 +88,7 @@ This skips the role on future runs; it does not undo changes from earlier runs.
 From the **`playbook/`** directory:
 
 ```bash
-ansible-playbook -i inventory.cnf config.yml -K
+ansible-playbook -i inventory.cnf config.yml -K -e @../.private/server-vars.yml
 ```
 
 `-K` prompts for the sudo password of the account Ansible connects as, which may
