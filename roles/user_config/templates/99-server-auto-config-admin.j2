@@ -1,3 +1,2 @@
-# Managed by Server-Auto-Config. Normal sudo credential caching still applies.
-Defaults:{{ user }} authenticate
-{{ user }} ALL=(ALL:ALL) PASSWD: ALL
+# Managed by Server-Auto-Config. Passwordless sudo is limited to this administrator.
+{{ user }} ALL=(ALL:ALL) NOPASSWD: ALL

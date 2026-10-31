@@ -2,7 +2,7 @@
 
 ---
 
-# 1. Create a managed administrator with password-required sudo #
+# 1. Create a managed administrator with passwordless sudo #
 
 - name: Validate managed administrator name
   assert:
@@ -52,7 +52,7 @@
     mode: "0750"
   become: true
 
-- name: Require a password for managed administrator sudo
+- name: Grant passwordless sudo to the managed administrator
   template:
     src: 99-server-auto-config-admin.j2
     dest: /etc/sudoers.d/99-server-auto-config-admin
