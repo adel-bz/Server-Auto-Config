@@ -15,8 +15,8 @@
   roles:
     - role: ../roles/user_config
     - role: ../roles/manage_packages
-#    - role: ../roles/install_deps
-#    - role: ../roles/gitlab_runner
+    - role: ../roles/install_deps
+    - role: ../roles/gitlab_runner
     - role: ../roles/ssh_config
 
 ########################################################
@@ -27,7 +27,7 @@
   roles:
     - role: ../roles/swap_config
     - role: ../roles/fail2ban
-#    - role: ../roles/firewall
+    - role: ../roles/firewall
     - role: ../roles/reboot
 
 ########################################################

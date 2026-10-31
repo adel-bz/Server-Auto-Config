@@ -1,4 +1,5 @@
 #inventory.cnf
 [servers]
 
-danaa-bigblue
+server1
+server2
